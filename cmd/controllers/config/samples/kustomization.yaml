@@ -1,0 +1,9 @@
+## Append samples you want in your CSV to this file as resources ##
+resources:
+- container_v1alpha1_container.yaml
+- container_v1alpha1_containersnapshot.yaml
+- dataset_v1alpha1_dataset.yaml
+- dataset_v1alpha1_dynamicmount.yaml
+- image_v1alpha1_image.yaml
+- nni_v1alpha1_experiment.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

@@ -1,0 +1,12 @@
+apiVersion: container.ai-playground.io/v1alpha1
+kind: ContainerSnapshot
+metadata:
+  labels:
+    app.kubernetes.io/name: containersnapshot
+    app.kubernetes.io/instance: containersnapshot-sample
+    app.kubernetes.io/part-of: controllers
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: controllers
+  name: containersnapshot-sample
+spec:
+  # TODO(user): Add fields here

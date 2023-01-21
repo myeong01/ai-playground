@@ -1,0 +1,65 @@
+domain: ai-playground.io
+layout:
+- go.kubebuilder.io/v3
+multigroup: true
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: controllers
+repo: github.com/myeong01/ai-playground/cmd/controllers
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: ai-playground.io
+  group: container
+  kind: Container
+  path: github.com/myeong01/ai-playground/cmd/controllers/apis/container/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: ai-playground.io
+  group: container
+  kind: ContainerSnapshot
+  path: github.com/myeong01/ai-playground/cmd/controllers/apis/container/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: ai-playground.io
+  group: dataset
+  kind: Dataset
+  path: github.com/myeong01/ai-playground/cmd/controllers/apis/dataset/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: ai-playground.io
+  group: dataset
+  kind: DynamicMount
+  path: github.com/myeong01/ai-playground/cmd/controllers/apis/dataset/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: ai-playground.io
+  group: image
+  kind: Image
+  path: github.com/myeong01/ai-playground/cmd/controllers/apis/image/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: ai-playground.io
+  group: nni
+  kind: Experiment
+  path: github.com/myeong01/ai-playground/cmd/controllers/apis/nni/v1alpha1
+  version: v1alpha1
+version: "3"

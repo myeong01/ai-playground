@@ -28,14 +28,35 @@ type ExperimentSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Experiment. Edit experiment_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Config       string `json:"config"`
+	SearchSpace  string `json:"searchSpace"`
+	Code         string `json:"code"`
+	ResourceName string `json:"resourceName"`
 }
 
 // ExperimentStatus defines the observed state of Experiment
 type ExperimentStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	WebUrl              string            `json:"webUrl,omitempty"`
+	ControlServerStatus AllocatedResource `json:"controlServerStatus,omitempty"`
+}
+
+type AllocatedResource struct {
+	Deployment     ResourceStatus `json:"deployment,omitempty"`
+	Pod            ResourceStatus `json:"pod,omitempty"`
+	Service        ResourceStatus `json:"service,omitempty"`
+	VirtualService ResourceStatus `json:"virtualService,omitempty"`
+}
+
+type ResourceStatus struct {
+	Created bool   `json:"created,omitempty"`
+	Running bool   `json:"running,omitempty"`
+	Failed  bool   `json:"failed,omitempty"`
+	Name    string `json:"name,omitempty"`
+	Reason  string `json:"reason,omitempty"`
+	Status  string `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -28,14 +28,43 @@ type DatasetSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Dataset. Edit dataset_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Type     string `json:"type"`
+	Capacity string `json:"capacity"`
 }
 
 // DatasetStatus defines the observed state of Dataset
 type DatasetStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	AllocatedResource AllocatedResource `json:"allocatedResource,omitempty"`
+}
+
+type AllocatedResource struct {
+	WebServer WebServerStatus `json:"webServer,omitempty"`
+	Storage   StorageStatus   `json:"storage,omitempty"`
+}
+
+type WebServerStatus struct {
+	Deployment     ResourceStatus `json:"deployment,omitempty"`
+	Pod            ResourceStatus `json:"pod,omitempty"`
+	Service        ResourceStatus `json:"service,omitempty"`
+	VirtualService ResourceStatus `json:"virtualService,omitempty"`
+}
+
+type StorageStatus struct {
+	Deployment ResourceStatus `json:"deployment,omitempty"`
+	Pod        ResourceStatus `json:"pod,omitempty"`
+	Service    ResourceStatus `json:"service,omitempty"`
+}
+
+type ResourceStatus struct {
+	Created bool   `json:"created,omitempty"`
+	Running bool   `json:"running,omitempty"`
+	Failed  bool   `json:"failed,omitempty"`
+	Name    string `json:"name,omitempty"`
+	Reason  string `json:"reason,omitempty"`
+	Status  string `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

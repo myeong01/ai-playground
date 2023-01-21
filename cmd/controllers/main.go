@@ -35,10 +35,12 @@ import (
 	datasetv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/dataset/v1alpha1"
 	imagev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/image/v1alpha1"
 	nniv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/nni/v1alpha1"
+	resourcev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/resource/v1alpha1"
 	containercontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/container"
 	datasetcontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/dataset"
 	imagecontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/image"
 	nnicontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/nni"
+	resourcecontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/resource"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -54,6 +56,7 @@ func init() {
 	utilruntime.Must(datasetv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(imagev1alpha1.AddToScheme(scheme))
 	utilruntime.Must(nniv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(resourcev1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -138,6 +141,41 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
+		os.Exit(1)
+	}
+	if err = (&containerv1alpha1.Container{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Container")
+		os.Exit(1)
+	}
+	if err = (&containerv1alpha1.ContainerSnapshot{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "ContainerSnapshot")
+		os.Exit(1)
+	}
+	if err = (&datasetv1alpha1.Dataset{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Dataset")
+		os.Exit(1)
+	}
+	if err = (&datasetv1alpha1.DynamicMount{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "DynamicMount")
+		os.Exit(1)
+	}
+	if err = (&imagev1alpha1.Image{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Image")
+		os.Exit(1)
+	}
+	if err = (&nniv1alpha1.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
+		os.Exit(1)
+	}
+	if err = (&resourcecontrollers.ResourceReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Resource")
+		os.Exit(1)
+	}
+	if err = (&resourcev1alpha1.Resource{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Resource")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

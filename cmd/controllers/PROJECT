@@ -17,6 +17,9 @@ resources:
   kind: Container
   path: github.com/myeong01/ai-playground/cmd/controllers/apis/container/v1alpha1
   version: v1alpha1
+  webhooks:
+    validation: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
@@ -26,6 +29,9 @@ resources:
   kind: ContainerSnapshot
   path: github.com/myeong01/ai-playground/cmd/controllers/apis/container/v1alpha1
   version: v1alpha1
+  webhooks:
+    validation: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
@@ -35,6 +41,9 @@ resources:
   kind: Dataset
   path: github.com/myeong01/ai-playground/cmd/controllers/apis/dataset/v1alpha1
   version: v1alpha1
+  webhooks:
+    validation: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
@@ -44,6 +53,9 @@ resources:
   kind: DynamicMount
   path: github.com/myeong01/ai-playground/cmd/controllers/apis/dataset/v1alpha1
   version: v1alpha1
+  webhooks:
+    validation: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
@@ -53,6 +65,9 @@ resources:
   kind: Image
   path: github.com/myeong01/ai-playground/cmd/controllers/apis/image/v1alpha1
   version: v1alpha1
+  webhooks:
+    validation: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
@@ -62,4 +77,19 @@ resources:
   kind: Experiment
   path: github.com/myeong01/ai-playground/cmd/controllers/apis/nni/v1alpha1
   version: v1alpha1
+  webhooks:
+    validation: true
+    webhookVersion: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: ai-playground.io
+  group: resource
+  kind: Resource
+  path: github.com/myeong01/ai-playground/cmd/controllers/apis/resource/v1alpha1
+  version: v1alpha1
+  webhooks:
+    validation: true
+    webhookVersion: v1
 version: "3"

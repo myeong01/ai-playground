@@ -28,14 +28,22 @@ type DynamicMountSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of DynamicMount. Edit dynamicmount_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	DatasetName    string `json:"datasetName"`
+	ContainerName  string `json:"containerName"`
+	MountPath      string `json:"mountPath,omitempty"`
+	DatasetSubPath string `json:"datasetSubPath,omitempty"`
+	ReadOnly       bool   `json:"readOnly,omitempty"`
 }
 
 // DynamicMountStatus defines the observed state of DynamicMount
 type DynamicMountStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Mounted bool   `json:"mounted,omitempty"`
+	Failed  bool   `json:"failed,omitempty"`
+	Reason  string `json:"reason,omitempty"`
+	Status  string `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

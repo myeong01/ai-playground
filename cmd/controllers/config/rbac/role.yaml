@@ -1,0 +1,189 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - container.ai-playground.io
+  resources:
+  - containers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - container.ai-playground.io
+  resources:
+  - containers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - container.ai-playground.io
+  resources:
+  - containers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - container.ai-playground.io
+  resources:
+  - containersnapshots
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - container.ai-playground.io
+  resources:
+  - containersnapshots/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - container.ai-playground.io
+  resources:
+  - containersnapshots/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - dataset.ai-playground.io
+  resources:
+  - datasets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dataset.ai-playground.io
+  resources:
+  - datasets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - dataset.ai-playground.io
+  resources:
+  - datasets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - dataset.ai-playground.io
+  resources:
+  - dynamicmounts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dataset.ai-playground.io
+  resources:
+  - dynamicmounts/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - dataset.ai-playground.io
+  resources:
+  - dynamicmounts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - image.ai-playground.io
+  resources:
+  - images
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - image.ai-playground.io
+  resources:
+  - images/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - image.ai-playground.io
+  resources:
+  - images/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nni.ai-playground.io
+  resources:
+  - experiments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nni.ai-playground.io
+  resources:
+  - experiments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nni.ai-playground.io
+  resources:
+  - experiments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - resource.ai-playground.io
+  resources:
+  - resources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - resource.ai-playground.io
+  resources:
+  - resources/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - resource.ai-playground.io
+  resources:
+  - resources/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -1,0 +1,147 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-container-ai-playground-io-v1alpha1-container
+  failurePolicy: Fail
+  name: vcontainer.kb.io
+  rules:
+  - apiGroups:
+    - container.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - containers
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-container-ai-playground-io-v1alpha1-containersnapshot
+  failurePolicy: Fail
+  name: vcontainersnapshot.kb.io
+  rules:
+  - apiGroups:
+    - container.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - containersnapshots
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-dataset-ai-playground-io-v1alpha1-dataset
+  failurePolicy: Fail
+  name: vdataset.kb.io
+  rules:
+  - apiGroups:
+    - dataset.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - datasets
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-dataset-ai-playground-io-v1alpha1-dynamicmount
+  failurePolicy: Fail
+  name: vdynamicmount.kb.io
+  rules:
+  - apiGroups:
+    - dataset.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - dynamicmounts
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-image-ai-playground-io-v1alpha1-image
+  failurePolicy: Fail
+  name: vimage.kb.io
+  rules:
+  - apiGroups:
+    - image.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - images
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-nni-ai-playground-io-v1alpha1-experiment
+  failurePolicy: Fail
+  name: vexperiment.kb.io
+  rules:
+  - apiGroups:
+    - nni.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - experiments
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-resource-ai-playground-io-v1alpha1-resource
+  failurePolicy: Fail
+  name: vresource.kb.io
+  rules:
+  - apiGroups:
+    - resource.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - resources
+  sideEffects: None

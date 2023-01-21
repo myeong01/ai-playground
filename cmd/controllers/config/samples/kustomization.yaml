@@ -6,4 +6,5 @@ resources:
 - dataset_v1alpha1_dynamicmount.yaml
 - image_v1alpha1_image.yaml
 - nni_v1alpha1_experiment.yaml
+- resource_v1alpha1_resource.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

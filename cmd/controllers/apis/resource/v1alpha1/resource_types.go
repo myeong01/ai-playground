@@ -23,61 +23,43 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ContainerSpec defines the desired state of Container
-type ContainerSpec struct {
+// ResourceSpec defines the desired state of Resource
+type ResourceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	ImageName    string `json:"imageName"`
-	ResourceName string `json:"resourceName"`
-	Port         uint   `json:"ports,omitempty"`
+	Cpu    uint `json:"cpu"`
+	Gpu    uint `json:"gpu,omitempty"`
+	Memory uint `json:"memory"`
 }
 
-// ContainerStatus defines the observed state of Container
-type ContainerStatus struct {
+// ResourceStatus defines the observed state of Resource
+type ResourceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	AllocatedResource AllocatedResource `json:"allocatedResource,omitempty"`
-}
-
-type AllocatedResource struct {
-	Deployment     ResourceStatus `json:"deployment,omitempty"`
-	Pod            ResourceStatus `json:"pod,omitempty"`
-	Service        ResourceStatus `json:"service,omitempty"`
-	VirtualService ResourceStatus `json:"virtualService,omitempty"`
-}
-
-type ResourceStatus struct {
-	Created bool   `json:"created,omitempty"`
-	Running bool   `json:"running,omitempty"`
-	Failed  bool   `json:"failed,omitempty"`
-	Name    string `json:"name,omitempty"`
-	Reason  string `json:"reason,omitempty"`
-	Status  string `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Container is the Schema for the containers API
-type Container struct {
+// Resource is the Schema for the resources API
+type Resource struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ContainerSpec   `json:"spec,omitempty"`
-	Status ContainerStatus `json:"status,omitempty"`
+	Spec   ResourceSpec   `json:"spec,omitempty"`
+	Status ResourceStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// ContainerList contains a list of Container
-type ContainerList struct {
+// ResourceList contains a list of Resource
+type ResourceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Container `json:"items"`
+	Items           []Resource `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Container{}, &ContainerList{})
+	SchemeBuilder.Register(&Resource{}, &ResourceList{})
 }

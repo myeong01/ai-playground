@@ -28,14 +28,25 @@ type ContainerSnapshotSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of ContainerSnapshot. Edit containersnapshot_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	ContainerName  string   `json:"containerName"`
+	VersionedNames []string `json:"versionedNames,omitempty"`
 }
 
 // ContainerSnapshotStatus defines the observed state of ContainerSnapshot
 type ContainerSnapshotStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Snapshots []Snapshot `json:"snapshots,omitempty"`
+}
+
+type Snapshot struct {
+	Name       string      `json:"name,omitempty"`
+	SnapshotAt metav1.Time `json:"snapshotAt,omitempty"`
+	CommitId   string      `json:"commitId,omitempty"`
+	Status     string      `json:"status,omitempty"`
+	Failed     bool        `json:"failed,omitempty"`
+	Reason     string      `json:"reason,omitempty"`
 }
 
 //+kubebuilder:object:root=true

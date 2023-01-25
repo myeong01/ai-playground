@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/myeong01/ai-playground/pkg/reconcilehelper/webhook/approve"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -27,6 +28,12 @@ import (
 var containerlog = logf.Log.WithName("container-resource")
 
 func (r *Container) SetupWebhookWithManager(mgr ctrl.Manager) error {
+	err := approve.NewWebhookManagedBy(mgr).
+		For(r).
+		Complete()
+	if err != nil {
+		return err
+	}
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
 		Complete()
@@ -36,8 +43,10 @@ func (r *Container) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:path=/validate-container-ai-playground-io-v1alpha1-container,mutating=false,failurePolicy=fail,sideEffects=None,groups=container.ai-playground.io,resources=containers,verbs=create;update,versions=v1alpha1,name=vcontainer.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/playground-mutate-container-ai-playground-io-v1alpha1-container,mutating=true,failurePolicy=fail,sideEffects=None,groups=container.ai-playground.io,resources=containers,verbs=create;update,versions=v1alpha1,name=mcontainer.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Validator = &Container{}
+var _ approve.ApprovalObject = &Container{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Container) ValidateCreate() error {
@@ -61,4 +70,12 @@ func (r *Container) ValidateDelete() error {
 
 	// TODO(user): fill in your validation logic upon object deletion.
 	return nil
+}
+
+func (r *Container) IsApproved() bool {
+	return r.Spec.IsApproved
+}
+
+func (r *Container) ApprovalPath() string {
+	return "/spec/isApproved"
 }

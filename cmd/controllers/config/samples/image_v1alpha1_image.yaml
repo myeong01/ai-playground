@@ -9,4 +9,5 @@ metadata:
     app.kubernetes.io/created-by: controllers
   name: image-sample
 spec:
+  imageNameWithTag: "nginx:latest"
   # TODO(user): Add fields here

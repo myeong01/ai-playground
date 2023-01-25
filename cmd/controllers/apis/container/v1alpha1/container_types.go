@@ -28,6 +28,7 @@ type ContainerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
+	IsApproved   bool   `json:"isApproved"`
 	ImageName    string `json:"imageName"`
 	ResourceName string `json:"resourceName"`
 	Port         uint   `json:"ports,omitempty"`

@@ -9,4 +9,7 @@ metadata:
     app.kubernetes.io/created-by: controllers
   name: container-sample
 spec:
+  imageName: image-sample
+  resourceName: resource-sample
+  ports: 80
   # TODO(user): Add fields here

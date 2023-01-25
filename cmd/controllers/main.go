@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	istioapisv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -101,9 +102,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// register scheme
+	istioapisv1beta1.AddToScheme(mgr.GetScheme())
+
 	if err = (&containercontrollers.ContainerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		EventRecorder: mgr.GetEventRecorderFor("container-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Container")
 		os.Exit(1)

@@ -47,7 +47,7 @@ ifeq ($(USE_IMAGE_DIGESTS), true)
 endif
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= myoon/ai-playground-controller:v00.00.01
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.25.0
 
@@ -120,7 +120,9 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
+	docker build --platform linux/amd64 -t ${IMG} .
+	rm manager
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.

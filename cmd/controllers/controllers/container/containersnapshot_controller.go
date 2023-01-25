@@ -18,9 +18,8 @@ package container
 
 import (
 	"context"
-	"fmt"
-
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -50,9 +49,50 @@ type ContainerSnapshotReconciler struct {
 func (r *ContainerSnapshotReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
-	logger.Info("reconcile from containersnapshot_controller", "request", req)
-	fmt.Printf("reconcile from containersnapshot_controller : [%v]\n", req)
+	snapshot := &containerv1alpha1.ContainerSnapshot{}
+	if err := r.Get(ctx, req.NamespacedName, snapshot); err != nil {
+		logger.Error(err, "unable to fetch container snapshot for container snapshot")
+		return ctrl.Result{}, err
+	}
+
+	container := &containerv1alpha1.Container{}
+	if err := r.Get(ctx, types.NamespacedName{Name: snapshot.Spec.ContainerName, Namespace: snapshot.Namespace}, container); err != nil {
+		logger.Error(err, "unable to fetch container for container snapshot")
+		return ctrl.Result{}, err
+	}
+
+	if err := ctrl.SetControllerReference(container, snapshot, r.Scheme); err != nil {
+		logger.Error(err, "unable to set controller reference to Snapshot")
+		return ctrl.Result{}, err
+	}
+
+	versionTargetStatusList := snapshot.Spec.VersionedNames
+	versionCurrentStatusList := snapshot.Status.Snapshots
+
+	targetStatusLen := len(versionTargetStatusList)
+	targetStatusIndex := 0
+	currentStatusLen := len(versionCurrentStatusList)
+	currentStatusIndex := 0
+
+	for targetStatusIndex < targetStatusLen && currentStatusIndex < currentStatusLen {
+		if versionTargetStatusList[targetStatusIndex] == versionCurrentStatusList[currentStatusIndex].Name {
+			if versionCurrentStatusList[currentStatusIndex].CommitId == "" && !versionCurrentStatusList[currentStatusIndex].Failed {
+				// TODO logic for create new version request to snapshot worker daemon then parse request and handle result
+			}
+			targetStatusIndex++
+		} else {
+			// TODO logic for delete existing version request to snapshot worker daemon then parse request and handle result
+		}
+		currentStatusIndex++
+	}
+
+	for targetStatusIndex < targetStatusLen {
+		// TODO logic for delete existing version request to snapshot worker daemon then parse request and handle result
+	}
+
+	for currentStatusIndex < currentStatusLen {
+		// TODO logic for create new version request to snapshot worker daemon then parse request and handle result
+	}
 
 	return ctrl.Result{}, nil
 }

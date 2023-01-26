@@ -45,7 +45,6 @@ spec:
                 type: string
             required:
             - imageName
-            - isApproved
             - resourceName
             type: object
           status:
@@ -53,6 +52,8 @@ spec:
             properties:
               allocatedResource:
                 properties:
+                  connectUrl:
+                    type: string
                   deployment:
                     properties:
                       created:

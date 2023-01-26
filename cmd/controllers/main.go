@@ -18,8 +18,9 @@ package main
 
 import (
 	"flag"
-	istioapisv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
 	"os"
+
+	istioapisv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -36,11 +37,13 @@ import (
 	datasetv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/dataset/v1alpha1"
 	imagev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/image/v1alpha1"
 	nniv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/nni/v1alpha1"
+	playgroundv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/playground/v1alpha1"
 	resourcev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/resource/v1alpha1"
 	containercontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/container"
 	datasetcontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/dataset"
 	imagecontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/image"
 	nnicontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/nni"
+	playgroundcontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/playground"
 	resourcecontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/resource"
 	//+kubebuilder:scaffold:imports
 )
@@ -58,6 +61,7 @@ func init() {
 	utilruntime.Must(imagev1alpha1.AddToScheme(scheme))
 	utilruntime.Must(nniv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(resourcev1alpha1.AddToScheme(scheme))
+	utilruntime.Must(playgroundv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -181,6 +185,17 @@ func main() {
 	}
 	if err = (&resourcev1alpha1.Resource{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Resource")
+		os.Exit(1)
+	}
+	if err = (&playgroundcontrollers.PlaygroundReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Playground")
+		os.Exit(1)
+	}
+	if err = (&playgroundv1alpha1.Playground{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Playground")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

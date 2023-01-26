@@ -25,11 +25,10 @@ import (
 )
 
 // log is for logging in this package.
-var containerlog = logf.Log.WithName("container-resource")
+var playgroundlog = logf.Log.WithName("playground-resource")
 
-func (r *Container) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	err := approve.NewWebhookManagedBy(mgr, r).
-		Complete()
+func (r *Playground) SetupWebhookWithManager(mgr ctrl.Manager) error {
+	err := approve.NewWebhookManagedBy(mgr, r).Complete()
 	if err != nil {
 		return err
 	}
@@ -41,40 +40,38 @@ func (r *Container) SetupWebhookWithManager(mgr ctrl.Manager) error {
 // TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-//+kubebuilder:webhook:path=/validate-container-ai-playground-io-v1alpha1-container,mutating=false,failurePolicy=fail,sideEffects=None,groups=container.ai-playground.io,resources=containers,verbs=create;update,versions=v1alpha1,name=vcontainer.kb.io,admissionReviewVersions=v1
-//+kubebuilder:webhook:path=/playground-mutate-container-ai-playground-io-v1alpha1-container,mutating=true,failurePolicy=fail,sideEffects=None,groups=container.ai-playground.io,resources=containers,verbs=create;update,versions=v1alpha1,name=mcontainer.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-playground-ai-playground-io-v1alpha1-playground,mutating=false,failurePolicy=fail,sideEffects=None,groups=playground.ai-playground.io,resources=playgrounds,verbs=create;update,versions=v1alpha1,name=vplayground.kb.io,admissionReviewVersions=v1
 
-var _ webhook.Validator = &Container{}
-var _ approve.ApprovalObject = &Container{}
+var _ webhook.Validator = &Playground{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *Container) ValidateCreate() error {
-	containerlog.Info("validate create", "name", r.Name)
+func (r *Playground) ValidateCreate() error {
+	playgroundlog.Info("validate create", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object creation.
 	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *Container) ValidateUpdate(old runtime.Object) error {
-	containerlog.Info("validate update", "name", r.Name)
+func (r *Playground) ValidateUpdate(old runtime.Object) error {
+	playgroundlog.Info("validate update", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object update.
 	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *Container) ValidateDelete() error {
-	containerlog.Info("validate delete", "name", r.Name)
+func (r *Playground) ValidateDelete() error {
+	playgroundlog.Info("validate delete", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object deletion.
 	return nil
 }
 
-func (r *Container) IsApproved() bool {
+func (r *Playground) IsApproved() bool {
 	return r.Spec.IsApproved
 }
 
-func (r *Container) ApprovalPath() string {
+func (r *Playground) ApprovalPath() string {
 	return "/spec/isApproved"
 }

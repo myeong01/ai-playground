@@ -28,10 +28,10 @@ type ContainerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	IsApproved   bool   `json:"isApproved"`
 	ImageName    string `json:"imageName"`
 	ResourceName string `json:"resourceName"`
 	Port         uint   `json:"ports,omitempty"`
+	IsApproved   bool   `json:"isApproved,omitempty"`
 }
 
 // ContainerStatus defines the observed state of Container
@@ -43,6 +43,7 @@ type ContainerStatus struct {
 }
 
 type AllocatedResource struct {
+	ConnectUrl     string         `json:"connectUrl,omitempty"`
 	Deployment     ResourceStatus `json:"deployment,omitempty"`
 	Pod            ResourceStatus `json:"pod,omitempty"`
 	Service        ResourceStatus `json:"service,omitempty"`

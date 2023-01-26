@@ -11,6 +11,7 @@ rules:
   - deployments
   verbs:
   - create
+  - delete
   - list
   - update
   - watch
@@ -72,6 +73,7 @@ rules:
   - services
   verbs:
   - create
+  - delete
   - list
   - update
   - watch
@@ -159,6 +161,7 @@ rules:
   - virtualservices
   verbs:
   - create
+  - delete
   - list
   - update
   - watch
@@ -184,6 +187,32 @@ rules:
   - nni.ai-playground.io
   resources:
   - experiments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - playground.ai-playground.io
+  resources:
+  - playgrounds
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - playground.ai-playground.io
+  resources:
+  - playgrounds/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - playground.ai-playground.io
+  resources:
+  - playgrounds/status
   verbs:
   - get
   - patch

@@ -7,23 +7,24 @@ import (
 	"strings"
 )
 
-type Builder struct {
+type Builder[T ApprovalObject] struct {
 	mgr            manager.Manager
-	approvalObject ApprovalObject
+	approvalObject T
 }
 
-func NewWebhookManagedBy(mgr manager.Manager) *Builder {
-	return &Builder{
-		mgr: mgr,
+func NewWebhookManagedBy[T ApprovalObject](mgr manager.Manager, approvalObject T) *Builder[T] {
+	return &Builder[T]{
+		mgr:            mgr,
+		approvalObject: approvalObject,
 	}
 }
 
-func (b *Builder) For(approvalObject ApprovalObject) *Builder {
-	b.approvalObject = approvalObject
-	return b
-}
+//func (b *Builder[T]) For(approvalObject T) *Builder[T] {
+//	b.approvalObject = approvalObject
+//	return b
+//}
 
-func (b *Builder) Complete() error {
+func (b *Builder[T]) Complete() error {
 	webhook, err := NewWebhook(b.approvalObject, b.mgr)
 	gvk, err := apiutil.GVKForObject(b.approvalObject, b.mgr.GetScheme())
 	if err != nil {

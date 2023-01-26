@@ -18,8 +18,6 @@ package container
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	containerv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/container/v1alpha1"
 	imagev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/image/v1alpha1"
 	resourcev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/resource/v1alpha1"
@@ -41,11 +39,12 @@ import (
 )
 
 const (
-	StopAnnotation         = "ai-playground-resource-stopped"
-	LastActivityAnnotation = "container.ai-playground.ai/last_activity"
-	PrefixEnvVar           = "URL_PREFIX"
-	GatewayName            = "default/main-gateway"
-	HostName               = "myeongsuk.ml"
+	StopAnnotation          = "ai-playground-resource-stopped"
+	LastActivityAnnotation  = "container.ai-playground.ai/last_activity"
+	PrefixEnvVar            = "URL_PREFIX"
+	GatewayName             = "default/main-gateway"
+	HostName                = "myeongsuk.ml"
+	ChildResourceNamePrefix = "cu-"
 )
 
 const (
@@ -60,9 +59,9 @@ type ContainerReconciler struct {
 }
 
 //+kubebuilder:rbac:groups=container.ai-playground.io,resources=containers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=list;watch;create;update
-//+kubebuilder:rbac:groups=core,resources=services,verbs=list;watch;create;update
-//+kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=list;watch;create;update
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=list;watch;create;update;delete
+//+kubebuilder:rbac:groups=core,resources=services,verbs=list;watch;create;update;delete
+//+kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=list;watch;create;update;delete
 //+kubebuilder:rbac:groups=container.ai-playground.io,resources=containers/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=container.ai-playground.io,resources=containers/finalizers,verbs=update
 
@@ -75,6 +74,7 @@ type ContainerReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
+// TODO all Update function called must be changed to Patch function
 func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
@@ -88,6 +88,16 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if !container.DeletionTimestamp.IsZero() {
 		return ctrl.Result{}, nil
 	}
+
+	if container.Spec.IsApproved {
+		return r.ApproveContainerReconcile(ctx, container, req)
+	} else {
+		return r.UnApproveContainerReconcile(ctx, container, req)
+	}
+}
+
+func (r *ContainerReconciler) ApproveContainerReconcile(ctx context.Context, container *containerv1alpha1.Container, req ctrl.Request) (ctrl.Result, error) {
+	logger := log.FromContext(ctx)
 
 	// Get Resource and Image for generate Deployment
 	resource := &resourcev1alpha1.Resource{}
@@ -103,7 +113,6 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// reconcile deployment
 	deployment := generateDeployment(container, resource, image)
-	r.Scheme.Default(deployment)
 	if err := ctrl.SetControllerReference(container, deployment, r.Scheme); err != nil {
 		logger.Error(err, "unable to set controller reference to Deployment")
 		return ctrl.Result{}, err
@@ -113,7 +122,7 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	err := r.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, foundDeployment)
 	if err != nil && apierrs.IsNotFound(err) {
 		logger.Info("Creating Deployment", "namespace", deployment.Namespace, "name", deployment.Name)
-		err = r.Create(ctx, deployment)
+		err := r.Create(ctx, deployment)
 		justCreated = true
 		if err != nil {
 			logger.Error(err, "unable to create Deployment")
@@ -125,7 +134,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				Reason:  err.Error(),
 				Status:  "Failed to create Deployment",
 			}
-			r.Status().Update(ctx, container)
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
 			return ctrl.Result{}, err
 		}
 		container.Status.AllocatedResource.Deployment = containerv1alpha1.ResourceStatus{
@@ -135,7 +147,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Name:    deployment.Name,
 			Status:  "Deployment success created",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 	} else if err != nil {
 		logger.Error(err, "error getting Deployment")
 		container.Status.AllocatedResource.Deployment = containerv1alpha1.ResourceStatus{
@@ -146,7 +161,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Reason:  err.Error(),
 			Status:  "Failed to lookup Deployment",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 		return ctrl.Result{}, err
 	}
 
@@ -164,7 +182,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				Reason:  err.Error(),
 				Status:  "Failed to update Deployment",
 			}
-			r.Status().Update(ctx, container)
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
 			return ctrl.Result{}, err
 		}
 	}
@@ -192,7 +213,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				Reason:  err.Error(),
 				Status:  "Failed to create Service",
 			}
-			r.Status().Update(ctx, container)
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
 			return ctrl.Result{}, err
 		}
 		container.Status.AllocatedResource.Service = containerv1alpha1.ResourceStatus{
@@ -202,7 +226,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Name:    svc.Name,
 			Status:  "Service success created",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 	} else if err != nil {
 		logger.Error(err, "error getting Service")
 		container.Status.AllocatedResource.Service = containerv1alpha1.ResourceStatus{
@@ -213,7 +240,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Reason:  err.Error(),
 			Status:  "Failed to lookup Service",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 		return ctrl.Result{}, err
 	}
 
@@ -230,7 +260,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				Reason:  err.Error(),
 				Status:  "Failed to update Service",
 			}
-			r.Status().Update(ctx, container)
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
 			return ctrl.Result{}, err
 		}
 	}
@@ -258,7 +291,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				Reason:  err.Error(),
 				Status:  "Failed to create VirtualService",
 			}
-			r.Status().Update(ctx, container)
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
 			return ctrl.Result{}, err
 		}
 		container.Status.AllocatedResource.VirtualService = containerv1alpha1.ResourceStatus{
@@ -268,7 +304,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Name:    vs.Name,
 			Status:  "VirtualService success created",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 	} else if err != nil {
 		logger.Error(err, "error getting VirtualService")
 		container.Status.AllocatedResource.VirtualService = containerv1alpha1.ResourceStatus{
@@ -279,7 +318,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Reason:  err.Error(),
 			Status:  "Failed to lookup VirtualService",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 		return ctrl.Result{}, err
 	}
 
@@ -296,7 +338,10 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				Reason:  err.Error(),
 				Status:  "Failed to update VirtualService",
 			}
-			r.Status().Update(ctx, container)
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
 			return ctrl.Result{}, err
 		}
 	}
@@ -314,20 +359,25 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Reason:  err.Error(),
 			Status:  "Failed to lookup Deployment",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 		return ctrl.Result{}, err
 	}
-	d, _ := json.MarshalIndent(curDeployment, "", "  ")
-	fmt.Println(string(d))
+
 	if curDeployment.Status.AvailableReplicas == 0 && container.Status.AllocatedResource.Deployment.Running == true {
 		container.Status.AllocatedResource.Deployment = containerv1alpha1.ResourceStatus{
-			Created: false,
+			Created: true,
 			Running: false,
 			Failed:  false,
 			Name:    curDeployment.Name,
 			Status:  "Pod recreating",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 	} else if curDeployment.Status.AvailableReplicas == 1 && container.Status.AllocatedResource.Deployment.Running == false {
 		container.Status.AllocatedResource.Deployment = containerv1alpha1.ResourceStatus{
 			Created: true,
@@ -336,9 +386,164 @@ func (r *ContainerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Name:    curDeployment.Name,
 			Status:  "Pod running",
 		}
-		r.Status().Update(ctx, container)
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
 	}
-	logger.Info("Sync", "replicas", curDeployment.Status.AvailableReplicas, "is_running", container.Status.AllocatedResource.Deployment.Running)
+	connectUrl := "https://" + HostName + getUrlPrefix(container)
+	if container.Status.AllocatedResource.ConnectUrl != connectUrl {
+		container.Status.AllocatedResource.ConnectUrl = connectUrl
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
+	}
+	return ctrl.Result{}, nil
+}
+
+func (r *ContainerReconciler) UnApproveContainerReconcile(ctx context.Context, container *containerv1alpha1.Container, req ctrl.Request) (ctrl.Result, error) {
+
+	logger := log.FromContext(ctx)
+	childResourceName := generateChildResourceName(container.Name)
+
+	deployment := &appsv1.Deployment{}
+	if err := r.Get(ctx, types.NamespacedName{Name: childResourceName, Namespace: container.Namespace}, deployment); err == nil {
+		deleteErr := r.Delete(ctx, deployment)
+		needUpdate := false
+		if deleteErr == nil || apierrs.IsNotFound(err) {
+			if container.Status.AllocatedResource.Deployment.Status != "ready for approve" {
+				container.Status.AllocatedResource.Deployment = containerv1alpha1.ResourceStatus{
+					Created: false,
+					Running: false,
+					Failed:  false,
+					Name:    "",
+					Status:  "ready for approve",
+				}
+				needUpdate = true
+			}
+		} else {
+			container.Status.AllocatedResource.Deployment = containerv1alpha1.ResourceStatus{
+				Created: true,
+				Running: false,
+				Failed:  false,
+				Name:    childResourceName,
+				Status:  "failed to delete",
+				Reason:  deleteErr.Error(),
+			}
+			needUpdate = true
+		}
+		if needUpdate {
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
+		}
+	} else if apierrs.IsNotFound(err) && container.Status.AllocatedResource.Deployment.Status != "ready for approve" {
+		container.Status.AllocatedResource.Deployment = containerv1alpha1.ResourceStatus{
+			Created: false,
+			Running: false,
+			Failed:  false,
+			Name:    "",
+			Status:  "ready for approve",
+		}
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
+	}
+
+	service := &corev1.Service{}
+	if err := r.Get(ctx, types.NamespacedName{Name: childResourceName, Namespace: container.Namespace}, service); err == nil {
+		deleteErr := r.Delete(ctx, service)
+		needUpdate := false
+		if deleteErr == nil || apierrs.IsNotFound(err) {
+			if container.Status.AllocatedResource.Service.Status != "ready for approve" {
+				container.Status.AllocatedResource.Service = containerv1alpha1.ResourceStatus{
+					Created: false,
+					Running: false,
+					Failed:  false,
+					Name:    "",
+					Status:  "ready for approve",
+				}
+				needUpdate = true
+			}
+		} else {
+			container.Status.AllocatedResource.Service = containerv1alpha1.ResourceStatus{
+				Created: true,
+				Running: false,
+				Failed:  false,
+				Name:    childResourceName,
+				Status:  "failed to delete",
+				Reason:  deleteErr.Error(),
+			}
+			needUpdate = true
+		}
+		if needUpdate {
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
+		}
+	} else if apierrs.IsNotFound(err) && container.Status.AllocatedResource.Service.Status != "ready for approve" {
+		container.Status.AllocatedResource.Service = containerv1alpha1.ResourceStatus{
+			Created: false,
+			Running: false,
+			Failed:  false,
+			Name:    "",
+			Status:  "ready for approve",
+		}
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
+	}
+
+	virtualService := &istioapisv1beta1.VirtualService{}
+	if err := r.Get(ctx, types.NamespacedName{Name: childResourceName, Namespace: container.Namespace}, virtualService); err == nil {
+		deleteErr := r.Delete(ctx, virtualService)
+		needUpdate := false
+		if deleteErr == nil || apierrs.IsNotFound(err) {
+			if container.Status.AllocatedResource.VirtualService.Status != "ready for approve" {
+				container.Status.AllocatedResource.VirtualService = containerv1alpha1.ResourceStatus{
+					Created: false,
+					Running: false,
+					Failed:  false,
+					Name:    "",
+					Status:  "ready for approve",
+				}
+				needUpdate = true
+			}
+		} else {
+			container.Status.AllocatedResource.VirtualService = containerv1alpha1.ResourceStatus{
+				Created: true,
+				Running: false,
+				Failed:  false,
+				Name:    childResourceName,
+				Status:  "failed to delete",
+				Reason:  deleteErr.Error(),
+			}
+			needUpdate = true
+		}
+		if needUpdate {
+			updateErr := r.Status().Update(ctx, container)
+			if updateErr != nil {
+				logger.Error(updateErr, "failed to update container status")
+			}
+		}
+	} else if apierrs.IsNotFound(err) && container.Status.AllocatedResource.VirtualService.Status != "ready for approve" {
+		container.Status.AllocatedResource.VirtualService = containerv1alpha1.ResourceStatus{
+			Created: false,
+			Running: false,
+			Failed:  false,
+			Name:    "",
+			Status:  "ready for approve",
+		}
+		updateErr := r.Status().Update(ctx, container)
+		if updateErr != nil {
+			logger.Error(updateErr, "failed to update container status")
+		}
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -372,13 +577,17 @@ func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 	return ok
 }
 
+func generateChildResourceName(parentName string) string {
+	return ChildResourceNamePrefix + parentName
+}
+
 func generateDeployment(container *containerv1alpha1.Container, resource *resourcev1alpha1.Resource, image *imagev1alpha1.Image) *appsv1.Deployment {
 	replicas := int32(1)
 	if StopAnnotationIsSet(container.ObjectMeta) {
 		replicas = 0
 	}
 
-	name := "cu-" + container.Name
+	name := generateChildResourceName(container.Name)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -435,17 +644,22 @@ func generateDeployment(container *containerv1alpha1.Container, resource *resour
 }
 
 func generateService(container *containerv1alpha1.Container) *corev1.Service {
+	name := generateChildResourceName(container.Name)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      container.Name,
+			Name:      name,
 			Namespace: container.Namespace,
+			Labels: map[string]string{
+				"container-name":            container.Name,
+				"owned-by/ai-playground.ai": "container-controller",
+			},
 		},
 		Spec: corev1.ServiceSpec{
 			Type:     corev1.ServiceTypeClusterIP,
-			Selector: map[string]string{"deployment": container.Name},
+			Selector: map[string]string{"deployment": name},
 			Ports: []corev1.ServicePort{
 				{
-					Name:       "http-" + container.Name,
+					Name:       "http-" + name,
 					Protocol:   corev1.ProtocolTCP,
 					Port:       DefaultPort,
 					TargetPort: intstr.FromInt(int(container.Spec.Port)),
@@ -460,10 +674,15 @@ func getUrlPrefix(container *containerv1alpha1.Container) string {
 }
 
 func generateVirtualService(container *containerv1alpha1.Container) *istioapisv1beta1.VirtualService {
+	name := generateChildResourceName(container.Name)
 	return &istioapisv1beta1.VirtualService{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      container.Name,
+			Name:      name,
 			Namespace: container.Namespace,
+			Labels: map[string]string{
+				"container-name":            container.Name,
+				"owned-by/ai-playground.ai": "container-controller",
+			},
 		},
 		Spec: istioapiv1beta1.VirtualService{
 			Gateways: []string{GatewayName},
@@ -480,7 +699,7 @@ func generateVirtualService(container *containerv1alpha1.Container) *istioapisv1
 					Route: []*istioapiv1beta1.HTTPRouteDestination{
 						{
 							Destination: &istioapiv1beta1.Destination{
-								Host: container.Name,
+								Host: name,
 								Port: &istioapiv1beta1.PortSelector{
 									Number: DefaultPort,
 								},

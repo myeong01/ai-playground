@@ -52,8 +52,6 @@ func (wh *Webhook[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	resp := admissionv1.AdmissionResponse{}
 	resp.Allowed = true
 	resp.UID = admissionReview.Request.UID
-	pT := admissionv1.PatchTypeJSONPatch
-	resp.PatchType = &pT
 	resp.Result = &metav1.Status{Status: "Success"}
 
 	ctx := r.Context()
@@ -62,7 +60,7 @@ func (wh *Webhook[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case admissionv1.Create:
 		isApproved := reqObject.IsApproved()
 		if isApproved {
-			err = wh.fillRespWithPermissionCheck(ctx, reqName, reqNamespace, admissionReview.Request.UserInfo, resp, reqObject.ApprovalPath(), false)
+			err = wh.fillRespWithPermissionCheck(ctx, reqName, reqNamespace, admissionReview.Request.UserInfo, &resp, reqObject.ApprovalPath(), false)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(fmt.Sprintf("failed to valid permission : %v", err)))
@@ -75,10 +73,15 @@ func (wh *Webhook[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isApproveBefore := oldObject.IsApproved()
 		if isApprovedNow != isApproveBefore {
 			// TODO isApproveBefore field 를 유지하는 것이 맞는지 고민 필요
-			err = wh.fillRespWithPermissionCheck(ctx, reqName, reqNamespace, admissionReview.Request.UserInfo, resp, reqObject.ApprovalPath(), isApproveBefore)
+			valid, reason, err := wh.validation(ctx, reqName, reqNamespace, admissionReview.Request.UserInfo)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(fmt.Sprintf("failed to valid permission : %v", err)))
+			}
+			if !valid {
+				resp.Allowed = false
+				resp.Result.Status = reason
+				resp.Result.Reason = metav1.StatusReasonForbidden
 			}
 		}
 	case admissionv1.Delete:
@@ -99,14 +102,16 @@ func (wh *Webhook[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (wh *Webhook[T]) fillRespWithPermissionCheck(ctx context.Context, name, namespace string, userInfo authenticationv1.UserInfo, resp admissionv1.AdmissionResponse, patchPath string, defaultApprovalValue bool) error {
-	valid, err := wh.validation(ctx, name, namespace, userInfo)
+func (wh *Webhook[T]) fillRespWithPermissionCheck(ctx context.Context, name, namespace string, userInfo authenticationv1.UserInfo, resp *admissionv1.AdmissionResponse, patchPath string, defaultApprovalValue bool) error {
+	valid, _, err := wh.validation(ctx, name, namespace, userInfo)
 	if err != nil {
 		return err
 	}
 	if valid {
 		return nil
 	} else {
+		pT := admissionv1.PatchTypeJSONPatch
+		resp.PatchType = &pT
 		resp.Result = &metav1.Status{Status: "Approve field replaced", Reason: "permission denied"}
 		patches := []PatchOperation{
 			{
@@ -120,7 +125,7 @@ func (wh *Webhook[T]) fillRespWithPermissionCheck(ctx context.Context, name, nam
 	}
 }
 
-func (wh *Webhook[T]) validation(ctx context.Context, name, namespace string, userInfo authenticationv1.UserInfo) (bool, error) {
+func (wh *Webhook[T]) validation(ctx context.Context, name, namespace string, userInfo authenticationv1.UserInfo) (bool, string, error) {
 	resp, err := wh.authClient.SubjectAccessReviews().Create(ctx, &authorizationv1.SubjectAccessReview{
 		Spec: authorizationv1.SubjectAccessReviewSpec{
 			ResourceAttributes: wh.generateResourceAttributes(name, namespace),
@@ -130,9 +135,9 @@ func (wh *Webhook[T]) validation(ctx context.Context, name, namespace string, us
 		},
 	}, metav1.CreateOptions{})
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
-	return resp.Status.Allowed, nil
+	return resp.Status.Allowed, resp.Status.Reason, nil
 }
 
 func (wh *Webhook[T]) generateResourceAttributes(name, namespace string) *authorizationv1.ResourceAttributes {

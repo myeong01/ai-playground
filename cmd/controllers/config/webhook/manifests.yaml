@@ -38,6 +38,46 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /validate-authorization-ai-playground-io-v1alpha1-clusterrole
+  failurePolicy: Fail
+  name: vclusterrole.kb.io
+  rules:
+  - apiGroups:
+    - authorization.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusterroles
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-authorization-ai-playground-io-v1alpha1-role
+  failurePolicy: Fail
+  name: vrole.kb.io
+  rules:
+  - apiGroups:
+    - authorization.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - roles
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
       path: /validate-container-ai-playground-io-v1alpha1-container
   failurePolicy: Fail
   name: vcontainer.kb.io

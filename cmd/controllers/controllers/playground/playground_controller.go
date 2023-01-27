@@ -174,6 +174,8 @@ func (r *PlaygroundReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// TODO implement removing namespace and resource quota when playground not approved
 	}
 
+	// TODO update status when both Namespace and ResourceQuota Create Completely
+
 	return ctrl.Result{}, nil
 }
 

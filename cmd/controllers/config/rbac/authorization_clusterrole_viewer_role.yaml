@@ -1,0 +1,27 @@
+# permissions for end users to view clusterroles.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: clusterrole-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: controllers
+    app.kubernetes.io/part-of: controllers
+    app.kubernetes.io/managed-by: kustomize
+  name: clusterrole-viewer-role
+rules:
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - clusterroles
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - clusterroles/status
+  verbs:
+  - get

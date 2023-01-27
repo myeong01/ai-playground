@@ -8,4 +8,6 @@ resources:
 - nni_v1alpha1_experiment.yaml
 - resource_v1alpha1_resource.yaml
 - playground_v1alpha1_playground.yaml
+- authorization_v1alpha1_clusterrole.yaml
+- authorization_v1alpha1_role.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

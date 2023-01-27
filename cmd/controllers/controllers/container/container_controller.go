@@ -150,6 +150,7 @@ func (r *ContainerReconciler) ApproveContainerReconcile(ctx context.Context, con
 		updateErr := r.Status().Update(ctx, container)
 		if updateErr != nil {
 			logger.Error(updateErr, "failed to update container status")
+			return ctrl.Result{}, updateErr
 		}
 	} else if err != nil {
 		logger.Error(err, "error getting Deployment")
@@ -229,6 +230,7 @@ func (r *ContainerReconciler) ApproveContainerReconcile(ctx context.Context, con
 		updateErr := r.Status().Update(ctx, container)
 		if updateErr != nil {
 			logger.Error(updateErr, "failed to update container status")
+			return ctrl.Result{}, updateErr
 		}
 	} else if err != nil {
 		logger.Error(err, "error getting Service")
@@ -307,6 +309,7 @@ func (r *ContainerReconciler) ApproveContainerReconcile(ctx context.Context, con
 		updateErr := r.Status().Update(ctx, container)
 		if updateErr != nil {
 			logger.Error(updateErr, "failed to update container status")
+			return ctrl.Result{}, updateErr
 		}
 	} else if err != nil {
 		logger.Error(err, "error getting VirtualService")
@@ -366,6 +369,7 @@ func (r *ContainerReconciler) ApproveContainerReconcile(ctx context.Context, con
 		return ctrl.Result{}, err
 	}
 
+	// TODO update status when only deployment created and pod is not
 	if curDeployment.Status.AvailableReplicas == 0 && container.Status.AllocatedResource.Deployment.Running == true {
 		container.Status.AllocatedResource.Deployment = containerv1alpha1.ResourceStatus{
 			Created: true,

@@ -16,6 +16,58 @@ rules:
   - update
   - watch
 - apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - clusterroles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - clusterroles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - clusterroles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - roles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - roles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - roles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - container.ai-playground.io
   resources:
   - containers

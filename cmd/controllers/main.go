@@ -33,12 +33,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	authorizationv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/authorization/v1alpha1"
 	containerv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/container/v1alpha1"
 	datasetv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/dataset/v1alpha1"
 	imagev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/image/v1alpha1"
 	nniv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/nni/v1alpha1"
 	playgroundv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/playground/v1alpha1"
 	resourcev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/resource/v1alpha1"
+	authorizationcontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/authorization"
 	containercontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/container"
 	datasetcontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/dataset"
 	imagecontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/image"
@@ -62,6 +64,7 @@ func init() {
 	utilruntime.Must(nniv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(resourcev1alpha1.AddToScheme(scheme))
 	utilruntime.Must(playgroundv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(authorizationv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -196,6 +199,28 @@ func main() {
 	}
 	if err = (&playgroundv1alpha1.Playground{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Playground")
+		os.Exit(1)
+	}
+	if err = (&authorizationcontrollers.ClusterRoleReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ClusterRole")
+		os.Exit(1)
+	}
+	if err = (&authorizationcontrollers.RoleReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Role")
+		os.Exit(1)
+	}
+	if err = (&authorizationv1alpha1.ClusterRole{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "ClusterRole")
+		os.Exit(1)
+	}
+	if err = (&authorizationv1alpha1.Role{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Role")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

@@ -9,4 +9,11 @@ metadata:
     app.kubernetes.io/created-by: controllers
   name: clusterrole-sample
 spec:
-  # TODO(user): Add fields here
+  isApproved: true
+  rules:
+    - apiGroups:
+        - container.ai-playground.io
+      resources:
+        - containers
+      verbs:
+        - '*'

@@ -44,6 +44,8 @@ type PlaygroundReconciler struct {
 
 //+kubebuilder:rbac:groups=playground.ai-playground.io,resources=playgrounds,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=playground.ai-playground.io,resources=playgrounds/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=core,resources=namespaces,verbs=list;watch;create;update;delete
+//+kubebuilder:rbac:groups=core,resources=resourcequotas,verbs=list;watch;create;update;delete
 //+kubebuilder:rbac:groups=playground.ai-playground.io,resources=playgrounds/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -152,9 +154,15 @@ func (r *PlaygroundReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				err := r.Update(ctx, foundedResourceQuota)
 				if err != nil {
 					logger.Error(err, "unable to update ResourceQuota")
+					playground.Status.ResourceQuotaName = ""
+					playground.Status.ResourceQuotaReason = err.Error()
+					updateErr := r.Status().Update(ctx, playground)
+					if updateErr != nil {
+						logger.Error(err, "failed to update Playground status")
+					}
 				}
-				playground.Status.ResourceQuotaName = ""
-				playground.Status.ResourceQuotaReason = err.Error()
+				playground.Status.ResourceQuotaName = foundedResourceQuota.Name
+				playground.Status.ResourceQuotaReason = ""
 				updateErr := r.Status().Update(ctx, playground)
 				if updateErr != nil {
 					logger.Error(err, "failed to update Playground status")
@@ -182,7 +190,7 @@ func generateNamespace(playground *playgroundv1alpha1.Playground) *corev1.Namesp
 }
 
 func generateResourceQuota(playground *playgroundv1alpha1.Playground) *corev1.ResourceQuota {
-	name := generateChildResourceName(playground.GenerateName)
+	name := generateChildResourceName(playground.Name)
 	return &corev1.ResourceQuota{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

@@ -49,6 +49,8 @@ type ClusterRoleReconciler struct {
 //+kubebuilder:rbac:groups=authorization.ai-playground.io,resources=clusterroles,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=authorization.ai-playground.io,resources=clusterroles/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=authorization.ai-playground.io,resources=clusterroles/finalizers,verbs=update
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterroles,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

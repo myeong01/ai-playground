@@ -9,4 +9,27 @@ metadata:
     app.kubernetes.io/created-by: controllers
   name: role-sample
 spec:
+  isApproved: true
+  parentRole:
+    type: ClusterRole
+    name: clusterrole-sample-child
+  rules:
+    - apiGroups:
+        - container.ai-playground.io
+      resources:
+        - containers
+      verbs:
+        - get
+    - apiGroups:
+        - container.ai-playground.io
+      resources:
+        - containers
+      verbs:
+        - list
+    - apiGroups:
+        - container.ai-playground.io
+      resources:
+        - containers
+      verbs:
+        - delete
   # TODO(user): Add fields here

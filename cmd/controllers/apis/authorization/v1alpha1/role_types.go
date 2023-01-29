@@ -24,28 +24,35 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+const (
+	TypeClusterRole = "ClusterRole"
+	TypeRole        = "Role"
+)
+
 // RoleSpec defines the desired state of Role
 type RoleSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	IsApproved bool                `json:"isApproved"`
-	ParentRole ParentRole          `json:"parentRole"`
-	Rules      []rbacv1.PolicyRule `json:"rules"`
+	IsApproved bool                `json:"isApproved,omitempty"`
+	ParentRole *ParentRole         `json:"parentRole,omitempty"`
+	Rules      []rbacv1.PolicyRule `json:"rules,omitempty"`
 }
 
 type ParentRole struct {
-	Type      string `json:"type"`
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
+	Type string `json:"type"`
+	Name string `json:"name"`
 }
 
 // RoleStatus defines the observed state of Role
 type RoleStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	RoleName string              `json:"roleName"`
-	Rules    []rbacv1.PolicyRule `json:"rules"`
+	RoleName       string              `json:"roleName,omitempty"`
+	Rules          []rbacv1.PolicyRule `json:"rules,omitempty"`
+	IsFailed       bool                `json:"isFailed,omitempty"`
+	Reason         string              `json:"reason,omitempty"`
+	IsChildChecked bool                `json:"isChildChecked,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -90,8 +90,6 @@ spec:
                   - verbs
                   type: object
                 type: array
-            required:
-            - rules
             type: object
           status:
             description: ClusterRoleStatus defines the observed state of ClusterRole
@@ -156,8 +154,6 @@ spec:
                   - verbs
                   type: object
                 type: array
-            required:
-            - isChildChecked
             type: object
         type: object
     served: true

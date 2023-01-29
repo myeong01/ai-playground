@@ -41,13 +41,10 @@ spec:
                 properties:
                   name:
                     type: string
-                  namespace:
-                    type: string
                   type:
                     type: string
                 required:
                 - name
-                - namespace
                 - type
                 type: object
               rules:
@@ -99,14 +96,16 @@ spec:
                   - verbs
                   type: object
                 type: array
-            required:
-            - isApproved
-            - parentRole
-            - rules
             type: object
           status:
             description: RoleStatus defines the observed state of Role
             properties:
+              isChildChecked:
+                type: boolean
+              isFailed:
+                type: boolean
+              reason:
+                type: string
               roleName:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
@@ -161,9 +160,6 @@ spec:
                   - verbs
                   type: object
                 type: array
-            required:
-            - roleName
-            - rules
             type: object
         type: object
     served: true

@@ -32,7 +32,7 @@ type ClusterRoleSpec struct {
 	// Foo is an example field of ClusterRole. Edit clusterrole_types.go to remove/update
 	IsApproved            bool                `json:"isApproved,omitempty"`
 	ParentClusterRoleName string              `json:"parentClusterRoleName,omitempty"`
-	Rules                 []rbacv1.PolicyRule `json:"rules"`
+	Rules                 []rbacv1.PolicyRule `json:"rules,omitempty"`
 }
 
 // ClusterRoleStatus defines the observed state of ClusterRole
@@ -43,7 +43,7 @@ type ClusterRoleStatus struct {
 	Rules           []rbacv1.PolicyRule `json:"rules,omitempty"`
 	IsFailed        bool                `json:"isFailed,omitempty"`
 	Reason          string              `json:"reason,omitempty"`
-	IsChildChecked  bool                `json:"isChildChecked"`
+	IsChildChecked  bool                `json:"isChildChecked,omitempty"`
 }
 
 //+kubebuilder:object:root=true

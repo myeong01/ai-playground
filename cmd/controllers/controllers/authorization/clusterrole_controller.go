@@ -34,10 +34,11 @@ import (
 )
 
 const (
-	ChildResourceNamePrefix = "ac-"
-	LabelKey                = "parent"
-	LabelPrefixClusterRole  = "clusterrole/"
-	LabelPrefixRole         = "role/"
+	ClusterRoleChildResourceNamePrefix = "ac-"
+	RoleChildResourceNamePrefix        = "ar-"
+	LabelKey                           = "parent"
+	LabelPrefixClusterRole             = "clusterrole-"
+	LabelPrefixRole                    = "role-"
 )
 
 // ClusterRoleReconciler reconciles a ClusterRole object
@@ -77,9 +78,13 @@ func (r *ClusterRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if clusterRole.Spec.ParentClusterRoleName != "" {
 		parentClusterRole := &authorizationv1alpha1.ClusterRole{}
 		if err := r.Get(ctx, types.NamespacedName{Name: clusterRole.Spec.ParentClusterRoleName}, parentClusterRole); err != nil {
+			logger.Error(err, "unable to fetch parent ClusterRole")
 			clusterRole.Status.IsFailed = true
 			clusterRole.Status.Reason = err.Error()
-			return ctrl.Result{}, reconcilehelper.GetErrorExceptNotFound(err, "unable to fetch parent ClusterRole", logger)
+			if err := r.Status().Update(ctx, clusterRole); err != nil {
+				logger.Error(err, "failed to update ClusterRole status")
+			}
+			return ctrl.Result{}, err
 		}
 		if len(clusterRole.OwnerReferences) == 0 {
 			if err := ctrl.SetControllerReference(parentClusterRole, clusterRole, r.Scheme); err != nil {
@@ -112,11 +117,15 @@ func (r *ClusterRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	kubeClusterRole := generateKubeClusterRole(clusterRole)
-	foundedClusterRole := &rbacv1.ClusterRole{}
-	err := r.Get(ctx, types.NamespacedName{Name: kubeClusterRole.Name}, foundedClusterRole)
+	if err := ctrl.SetControllerReference(clusterRole, kubeClusterRole, r.Scheme); err != nil {
+		logger.Error(err, "unable to set controller reference to KubeClusterRole")
+		return ctrl.Result{}, err
+	}
+	foundedKubeClusterRole := &rbacv1.ClusterRole{}
+	err := r.Get(ctx, types.NamespacedName{Name: kubeClusterRole.Name}, foundedKubeClusterRole)
 	if err != nil && apierrs.IsNotFound(err) {
-		logger.Info("Creating ClusterRole", "name", clusterRole.Name)
-		err := r.Create(ctx, clusterRole)
+		logger.Info("Creating ClusterRole", "name", kubeClusterRole.Name)
+		err := r.Create(ctx, kubeClusterRole)
 		if err != nil {
 			logger.Error(err, "unable to create ClusterRole")
 			clusterRole.Status.IsFailed = true
@@ -128,52 +137,52 @@ func (r *ClusterRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			return ctrl.Result{}, err
 		}
 		clusterRole.Status = authorizationv1alpha1.ClusterRoleStatus{
-			ClusterRoleName: clusterRole.Name,
+			ClusterRoleName: kubeClusterRole.Name,
 			IsFailed:        false,
 			Reason:          "",
 			Rules:           clusterRole.Spec.Rules,
 		}
 		updateErr := r.Status().Update(ctx, clusterRole)
 		if updateErr != nil {
-			logger.Error(updateErr, "failed to update ClusterRole status")
+			logger.Error(updateErr, "unable to update ClusterRole status")
 			return ctrl.Result{}, updateErr
 		}
 	} else if err != nil {
-		logger.Error(err, "error getting ClusterRole")
+		logger.Error(err, "error getting KubeClusterRole")
 		clusterRole.Status.IsFailed = true
 		clusterRole.Status.Reason = err.Error()
 		updateErr := r.Status().Update(ctx, clusterRole)
 		if updateErr != nil {
-			logger.Error(updateErr, "failed to update ClusterRole status")
+			logger.Error(updateErr, "unable to update ClusterRole status")
 		}
 		return ctrl.Result{}, err
 	} else {
-		if !reflect.DeepEqual(kubeClusterRole.Rules, clusterRole.Spec.Rules) {
-			kubeClusterRole.Rules = clusterRole.Spec.Rules
-			updateErr := r.Update(ctx, kubeClusterRole)
+		if !reflect.DeepEqual(foundedKubeClusterRole.Rules, clusterRole.Spec.Rules) {
+			foundedKubeClusterRole.Rules = clusterRole.Spec.Rules
+			updateErr := r.Update(ctx, foundedKubeClusterRole)
 			if updateErr != nil {
-				logger.Error(updateErr, "failed to update KubeClusterRole spec")
+				logger.Error(updateErr, "unable to update KubeClusterRole spec")
 				return ctrl.Result{}, updateErr
 			}
-			clusterRole.Status.Rules = clusterRole.Spec.Rules
+			clusterRole.Status.Rules = foundedKubeClusterRole.Rules
 			clusterRole.Status.IsChildChecked = false
 			updateErr = r.Status().Update(ctx, clusterRole)
 			if updateErr != nil {
-				logger.Error(updateErr, "failed to update ClusterRole status")
+				logger.Error(updateErr, "unable to update ClusterRole status")
 				return ctrl.Result{}, updateErr
 			}
 		} else if !reflect.DeepEqual(clusterRole.Spec.Rules, clusterRole.Status.Rules) {
 			clusterRole.Status.Rules = clusterRole.Spec.Rules
 			updateErr := r.Status().Update(ctx, clusterRole)
 			if updateErr != nil {
-				logger.Error(updateErr, "failed to update ClusterRole status")
+				logger.Error(updateErr, "unable to update ClusterRole status")
 				return ctrl.Result{}, updateErr
 			}
 		}
 		if !clusterRole.Status.IsChildChecked {
 			childClusterRoleList, err := r.listAllChildClusterRole(ctx, clusterRole)
 			if err != nil {
-				logger.Error(err, "failed to list child ClusterRole")
+				logger.Error(err, "unable to list child ClusterRole")
 				return ctrl.Result{}, err
 			}
 			for _, childClusterRole := range childClusterRoleList.Items {
@@ -189,7 +198,7 @@ func (r *ClusterRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 			childRoleList, err := r.listAllChildRole(ctx, clusterRole)
 			if err != nil {
-				logger.Error(err, "failed to list child Role")
+				logger.Error(err, "unable to list child Role")
 				return ctrl.Result{}, err
 			}
 			for _, childRole := range childRoleList.Items {
@@ -197,7 +206,7 @@ func (r *ClusterRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				if updated {
 					childRole.Spec.Rules = updatedChildRoleRule
 					if err := r.Update(ctx, &childRole); err != nil {
-						logger.Error(err, "failed to update childRole spec")
+						logger.Error(err, "unable to update childRole spec")
 						return ctrl.Result{}, err
 					}
 				}
@@ -206,7 +215,7 @@ func (r *ClusterRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			clusterRole.Status.IsChildChecked = true
 			updateErr := r.Status().Update(ctx, clusterRole)
 			if updateErr != nil {
-				logger.Error(updateErr, "failed to update ClusterRole status")
+				logger.Error(updateErr, "unable to update ClusterRole status")
 				return ctrl.Result{}, updateErr
 			}
 		}
@@ -254,12 +263,8 @@ func (r *ClusterRoleReconciler) listAllChildRole(ctx context.Context, clusterRol
 	return roleList, nil
 }
 
-func generateChildResourceName(name string) string {
-	return ChildResourceNamePrefix + name
-}
-
 func generateKubeClusterRole(clusterRole *authorizationv1alpha1.ClusterRole) *rbacv1.ClusterRole {
-	name := generateChildResourceName(clusterRole.Name)
+	name := ClusterRoleChildResourceNamePrefix + clusterRole.Name
 	return &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,

@@ -10,4 +10,5 @@ resources:
 - playground_v1alpha1_playground.yaml
 - authorization_v1alpha1_clusterrole.yaml
 - authorization_v1alpha1_role.yaml
+- authorization_v1alpha1_group.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

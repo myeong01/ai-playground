@@ -58,6 +58,26 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /validate-authorization-ai-playground-io-v1alpha1-group
+  failurePolicy: Fail
+  name: vgroup.kb.io
+  rules:
+  - apiGroups:
+    - authorization.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - groups
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
       path: /validate-authorization-ai-playground-io-v1alpha1-role
   failurePolicy: Fail
   name: vrole.kb.io

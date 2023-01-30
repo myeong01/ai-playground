@@ -17,61 +17,65 @@ limitations under the License.
 package v1alpha1
 
 import (
-	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-const (
-	TypeClusterRole = "ClusterRole"
-	TypeRole        = "Role"
-)
-
-// RoleSpec defines the desired state of Role
-type RoleSpec struct {
+// GroupSpec defines the desired state of Group
+type GroupSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	IsApproved bool                `json:"isApproved,omitempty"`
-	ParentRole *RoleSelector       `json:"parentRole,omitempty"`
-	Rules      []rbacv1.PolicyRule `json:"rules,omitempty"`
+	IsApproved bool   `json:"isApproved"`
+	Users      []User `json:"users,omitempty"`
 }
 
-// RoleStatus defines the observed state of Role
-type RoleStatus struct {
+type User struct {
+	Name       string       `json:"name"`
+	Role       RoleSelector `json:"role"`
+	IsApproved bool         `json:"isApproved,omitempty"`
+}
+
+type RoleSelector struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+// GroupStatus defines the observed state of Group
+type GroupStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	RoleName        string              `json:"roleName,omitempty"`
-	Rules           []rbacv1.PolicyRule `json:"rules,omitempty"`
-	IsFailed        bool                `json:"isFailed,omitempty"`
-	Reason          string              `json:"reason,omitempty"`
-	IsChildChecked  bool                `json:"isChildChecked,omitempty"`
-	DependencyDepth int                 `json:"dependencyDepth,omitempty"`
+	ApprovedUsers []ApprovedUser `json:"approvedUsers,omitempty"`
+}
+
+type ApprovedUser struct {
+	Name string       `json:"name"`
+	Role RoleSelector `json:"role"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Role is the Schema for the roles API
-type Role struct {
+// Group is the Schema for the groups API
+type Group struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RoleSpec   `json:"spec,omitempty"`
-	Status RoleStatus `json:"status,omitempty"`
+	Spec   GroupSpec   `json:"spec,omitempty"`
+	Status GroupStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// RoleList contains a list of Role
-type RoleList struct {
+// GroupList contains a list of Group
+type GroupList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Role `json:"items"`
+	Items           []Group `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Role{}, &RoleList{})
+	SchemeBuilder.Register(&Group{}, &GroupList{})
 }

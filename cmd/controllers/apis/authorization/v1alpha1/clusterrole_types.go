@@ -44,6 +44,7 @@ type ClusterRoleStatus struct {
 	IsFailed        bool                `json:"isFailed,omitempty"`
 	Reason          string              `json:"reason,omitempty"`
 	IsChildChecked  bool                `json:"isChildChecked,omitempty"`
+	DependencyDepth int                 `json:"dependencyDepth,omitempty"`
 }
 
 //+kubebuilder:object:root=true

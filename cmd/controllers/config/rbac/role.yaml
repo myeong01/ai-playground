@@ -44,6 +44,32 @@ rules:
 - apiGroups:
   - authorization.ai-playground.io
   resources:
+  - groups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - groups/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
+  - groups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
   - roles
   verbs:
   - create

@@ -100,6 +100,8 @@ spec:
           status:
             description: RoleStatus defines the observed state of Role
             properties:
+              dependencyDepth:
+                type: integer
               isChildChecked:
                 type: boolean
               isFailed:

@@ -31,10 +31,10 @@ func (b *Builder[T]) Complete() error {
 		return err
 	}
 
-	b.mgr.GetWebhookServer().Register(generatePath(gvk), webhook)
+	b.mgr.GetWebhookServer().Register(GeneratePath(gvk), webhook)
 	return nil
 }
 
-func generatePath(gvk schema.GroupVersionKind) string {
+func GeneratePath(gvk schema.GroupVersionKind) string {
 	return "/playground-mutate-" + strings.ReplaceAll(gvk.Group, ".", "-") + "-" + gvk.Version + "-" + strings.ToLower(gvk.Kind)
 }

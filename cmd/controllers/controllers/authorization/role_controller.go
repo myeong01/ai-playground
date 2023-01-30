@@ -67,6 +67,7 @@ func (r *RoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if role.Spec.ParentRole != nil {
 		var parentRoleObject metav1.Object
 		var parentRoleRules []rbacv1.PolicyRule
+		var dependencyDepth int
 		var labelPrefix string
 		switch role.Spec.ParentRole.Type {
 		case authorizationv1alpha1.TypeClusterRole:
@@ -83,6 +84,7 @@ func (r *RoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			parentRoleObject = parentClusterRole
 			parentRoleRules = parentClusterRole.Spec.Rules
 			labelPrefix = LabelPrefixClusterRole
+			dependencyDepth = parentClusterRole.Status.DependencyDepth + 1
 		case authorizationv1alpha1.TypeRole:
 			parentRole := &authorizationv1alpha1.Role{}
 			if err := r.Get(ctx, types.NamespacedName{Name: role.Spec.ParentRole.Name, Namespace: role.Namespace}, parentRole); err != nil {
@@ -97,6 +99,7 @@ func (r *RoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			parentRoleObject = parentRole
 			parentRoleRules = parentRole.Spec.Rules
 			labelPrefix = LabelPrefixRole
+			dependencyDepth = parentRole.Status.DependencyDepth + 1
 		default:
 			logger.Error(errors.New("unknown type"), "unknown parent role type")
 			role.Status.IsFailed = true
@@ -113,6 +116,13 @@ func (r *RoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			}
 			if err := r.Update(ctx, role); err != nil {
 				logger.Error(err, "unable to update Role OwnerReference")
+				return ctrl.Result{}, err
+			}
+		}
+		if role.Status.DependencyDepth != dependencyDepth {
+			role.Status.DependencyDepth = dependencyDepth
+			if err := r.Update(ctx, role); err != nil {
+				logger.Error(err, "unable to update Role status")
 				return ctrl.Result{}, err
 			}
 		}

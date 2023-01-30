@@ -96,6 +96,13 @@ func (r *ClusterRoleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				return ctrl.Result{}, err
 			}
 		}
+		if clusterRole.Status.DependencyDepth != parentClusterRole.Status.DependencyDepth+1 {
+			clusterRole.Status.DependencyDepth = parentClusterRole.Status.DependencyDepth + 1
+			if err := r.Update(ctx, clusterRole); err != nil {
+				logger.Error(err, "unable to update ClusterRole OwnerReference")
+				return ctrl.Result{}, err
+			}
+		}
 		if clusterRole.ObjectMeta.Labels[LabelKey] != LabelPrefixClusterRole+clusterRole.Spec.ParentClusterRoleName {
 			clusterRole.ObjectMeta.Labels[LabelKey] = LabelPrefixClusterRole + clusterRole.Spec.ParentClusterRoleName
 			if err := r.Update(ctx, clusterRole); err != nil {

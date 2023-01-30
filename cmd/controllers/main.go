@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/myeong01/ai-playground/pkg/reconcilehelper/webhook/groupapprove"
 	"os"
 
 	istioapisv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
@@ -221,6 +222,21 @@ func main() {
 	}
 	if err = (&authorizationv1alpha1.Role{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Role")
+		os.Exit(1)
+	}
+	if err = (&authorizationcontrollers.GroupReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Group")
+		os.Exit(1)
+	}
+	if err = (&authorizationv1alpha1.Group{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Group")
+		os.Exit(1)
+	}
+	if err = groupapprove.SetupGroupMutateWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Group")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

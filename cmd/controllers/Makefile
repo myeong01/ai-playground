@@ -46,6 +46,7 @@ ifeq ($(USE_IMAGE_DIGESTS), true)
 	BUNDLE_GEN_FLAGS += --use-image-digests
 endif
 
+IMG = registry.gitlab.com/myeongsuk.yoon/temp:ai-playground-controller-v00.00.01
 # Image URL to use all building/pushing image targets
 IMG ?= myoon/ai-playground-controller:v00.00.01
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.

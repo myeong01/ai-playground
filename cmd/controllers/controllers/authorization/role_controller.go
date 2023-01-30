@@ -82,7 +82,7 @@ func (r *RoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			}
 			parentRoleObject = parentClusterRole
 			parentRoleRules = parentClusterRole.Spec.Rules
-			labelPrefix = ClusterRoleChildResourceNamePrefix
+			labelPrefix = LabelPrefixClusterRole
 		case authorizationv1alpha1.TypeRole:
 			parentRole := &authorizationv1alpha1.Role{}
 			if err := r.Get(ctx, types.NamespacedName{Name: role.Spec.ParentRole.Name, Namespace: role.Namespace}, parentRole); err != nil {
@@ -96,7 +96,7 @@ func (r *RoleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			}
 			parentRoleObject = parentRole
 			parentRoleRules = parentRole.Spec.Rules
-			labelPrefix = RoleChildResourceNamePrefix
+			labelPrefix = LabelPrefixRole
 		default:
 			logger.Error(errors.New("unknown type"), "unknown parent role type")
 			role.Status.IsFailed = true

@@ -63,6 +63,8 @@ type ResourceStatus struct {
 //+kubebuilder:subresource:status
 
 // Experiment is the Schema for the experiments API
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Experiment struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -74,6 +76,7 @@ type Experiment struct {
 //+kubebuilder:object:root=true
 
 // ExperimentList contains a list of Experiment
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ExperimentList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

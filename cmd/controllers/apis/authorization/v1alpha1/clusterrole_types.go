@@ -52,6 +52,9 @@ type ClusterRoleStatus struct {
 //+kubebuilder:resource:scope=Cluster
 
 // ClusterRole is the Schema for the clusterroles API
+// +genclient
+// +genclient:nonNamespaced
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ClusterRole struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -63,6 +66,7 @@ type ClusterRole struct {
 //+kubebuilder:object:root=true
 
 // ClusterRoleList contains a list of ClusterRole
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ClusterRoleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

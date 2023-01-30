@@ -50,6 +50,8 @@ type DynamicMountStatus struct {
 //+kubebuilder:subresource:status
 
 // DynamicMount is the Schema for the dynamicmounts API
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type DynamicMount struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -61,6 +63,7 @@ type DynamicMount struct {
 //+kubebuilder:object:root=true
 
 // DynamicMountList contains a list of DynamicMount
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type DynamicMountList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

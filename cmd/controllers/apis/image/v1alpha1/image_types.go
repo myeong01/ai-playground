@@ -44,6 +44,8 @@ type ImageStatus struct {
 //+kubebuilder:subresource:status
 
 // Image is the Schema for the images API
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Image struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -55,6 +57,7 @@ type Image struct {
 //+kubebuilder:object:root=true
 
 // ImageList contains a list of Image
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ImageList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

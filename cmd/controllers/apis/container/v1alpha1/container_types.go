@@ -63,6 +63,8 @@ type ResourceStatus struct {
 //+kubebuilder:subresource:status
 
 // Container is the Schema for the containers API
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Container struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -74,6 +76,7 @@ type Container struct {
 //+kubebuilder:object:root=true
 
 // ContainerList contains a list of Container
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ContainerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

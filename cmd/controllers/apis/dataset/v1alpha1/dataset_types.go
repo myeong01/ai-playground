@@ -71,6 +71,8 @@ type ResourceStatus struct {
 //+kubebuilder:subresource:status
 
 // Dataset is the Schema for the datasets API
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Dataset struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -82,6 +84,7 @@ type Dataset struct {
 //+kubebuilder:object:root=true
 
 // DatasetList contains a list of Dataset
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type DatasetList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

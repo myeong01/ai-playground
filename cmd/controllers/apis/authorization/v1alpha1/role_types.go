@@ -55,6 +55,8 @@ type RoleStatus struct {
 //+kubebuilder:subresource:status
 
 // Role is the Schema for the roles API
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Role struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -66,6 +68,7 @@ type Role struct {
 //+kubebuilder:object:root=true
 
 // RoleList contains a list of Role
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type RoleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

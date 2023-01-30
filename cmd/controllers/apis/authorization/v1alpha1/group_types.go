@@ -59,6 +59,8 @@ type ApprovedUser struct {
 //+kubebuilder:subresource:status
 
 // Group is the Schema for the groups API
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Group struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -70,6 +72,7 @@ type Group struct {
 //+kubebuilder:object:root=true
 
 // GroupList contains a list of Group
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type GroupList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

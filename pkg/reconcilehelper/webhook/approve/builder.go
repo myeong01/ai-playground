@@ -10,12 +10,14 @@ import (
 type Builder[T ApprovalObject] struct {
 	mgr            manager.Manager
 	approvalObject T
+	resourceName   string
 }
 
-func NewWebhookManagedBy[T ApprovalObject](mgr manager.Manager, approvalObject T) *Builder[T] {
+func NewWebhookManagedBy[T ApprovalObject](mgr manager.Manager, approvalObject T, resourceName string) *Builder[T] {
 	return &Builder[T]{
 		mgr:            mgr,
 		approvalObject: approvalObject,
+		resourceName:   resourceName,
 	}
 }
 
@@ -25,7 +27,7 @@ func NewWebhookManagedBy[T ApprovalObject](mgr manager.Manager, approvalObject T
 //}
 
 func (b *Builder[T]) Complete() error {
-	webhook, err := NewWebhook(b.approvalObject, b.mgr)
+	webhook, err := NewWebhook(b.approvalObject, b.mgr, b.resourceName)
 	gvk, err := apiutil.GVKForObject(b.approvalObject, b.mgr.GetScheme())
 	if err != nil {
 		return err

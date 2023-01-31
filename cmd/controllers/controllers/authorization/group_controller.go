@@ -34,6 +34,7 @@ type GroupReconciler struct {
 }
 
 //+kubebuilder:rbac:groups=authorization.ai-playground.io,resources=groups,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=authorization.ai-playground.io,resources=groups/approval,verbs=update
 //+kubebuilder:rbac:groups=authorization.ai-playground.io,resources=groups/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=authorization.ai-playground.io,resources=groups/finalizers,verbs=update
 
@@ -75,25 +76,33 @@ func (r *GroupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 func checkUserUpdate(users []authorizationv1alpha1.User, approvedUsers []authorizationv1alpha1.ApprovedUser) ([]authorizationv1alpha1.ApprovedUser, bool) {
 	updatedApprovedUsers := make([]authorizationv1alpha1.ApprovedUser, len(users))
-	isApprovedUserExist := len(approvedUsers) > 0
+	approvedUserLen := len(approvedUsers)
 	updatedApprovedUsersIndex := 0
 	approvedUsersIndex := 0
 	needUpdate := false
 	for _, user := range users {
-		if isApprovedUserExist && user.Name != approvedUsers[approvedUsersIndex].Name {
-			if user.IsApproved {
-				updatedApprovedUsers[updatedApprovedUsersIndex] = userToApprovedUser(user)
-				updatedApprovedUsersIndex++
-				needUpdate = true
+		if approvedUsersIndex < approvedUserLen {
+			if user.Name != approvedUsers[approvedUsersIndex].Name {
+				if user.IsApproved {
+					updatedApprovedUsers[updatedApprovedUsersIndex] = userToApprovedUser(user)
+					updatedApprovedUsersIndex++
+					needUpdate = true
+				}
+			} else {
+				if user.IsApproved {
+					updatedApprovedUsers[updatedApprovedUsersIndex] = userToApprovedUser(user)
+					updatedApprovedUsersIndex++
+				} else {
+					needUpdate = true
+				}
+				approvedUsersIndex++
 			}
 		} else {
 			if user.IsApproved {
 				updatedApprovedUsers[updatedApprovedUsersIndex] = userToApprovedUser(user)
 				updatedApprovedUsersIndex++
-			} else {
 				needUpdate = true
 			}
-			approvedUsersIndex++
 		}
 	}
 	return updatedApprovedUsers[:updatedApprovedUsersIndex], needUpdate

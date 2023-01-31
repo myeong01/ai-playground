@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/created-by: controllers
   name: container-sample
 spec:
+  isApproved: true
   imageName: image-sample
   resourceName: resource-sample
   ports: 80

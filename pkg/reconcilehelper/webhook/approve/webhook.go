@@ -16,18 +16,20 @@ import (
 )
 
 type Webhook[T ApprovalObject] struct {
-	gvk    schema.GroupVersionKind
-	client client.Client
+	gvk          schema.GroupVersionKind
+	client       client.Client
+	resourceName string
 }
 
-func NewWebhook[T ApprovalObject](object T, mgr manager.Manager) (*Webhook[T], error) {
+func NewWebhook[T ApprovalObject](object T, mgr manager.Manager, resourceName string) (*Webhook[T], error) {
 	gvk, err := apiutil.GVKForObject(object, mgr.GetScheme())
 	if err != nil {
 		return nil, err
 	}
 	return &Webhook[T]{
-		gvk:    gvk,
-		client: mgr.GetClient(),
+		gvk:          gvk,
+		client:       mgr.GetClient(),
+		resourceName: resourceName,
 	}, nil
 }
 
@@ -146,7 +148,7 @@ func (wh *Webhook[T]) generateResourceAttributes(name, namespace string) *author
 		Verb:        "update",
 		Group:       wh.gvk.Group,
 		Version:     wh.gvk.Version,
-		Resource:    wh.gvk.Kind,
+		Resource:    wh.resourceName,
 		Subresource: "approval",
 	}
 }

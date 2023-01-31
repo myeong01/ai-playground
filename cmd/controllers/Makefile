@@ -258,5 +258,5 @@ catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
 
 client-gen:
-	client-gen -h hack/boilerplate.go.txt --clientset-name clientset --input-base github.com/myeong01/ai-playground/cmd/controllers/apis --input "authorization/v1alpha1,container/v1alpha1,dataset/v1alpha1,image/v1alpha1,nni/v1alpha1,playground/v1alpha1,resource/v1alpha1" --output-package github.com/myeong01/ai-playground/cmd/controllers/clientset
+	client-gen -h hack/boilerplate.go.txt --clientset-name clientset --input-base github.com/myeong01/ai-playground/cmd/controllers/apis --input "authorization/v1alpha1,container/v1alpha1,dataset/v1alpha1,image/v1alpha1,nni/v1alpha1,playground/v1alpha1,resource/v1alpha1" --output-package github.com/myeong01/ai-playground/pkg/clientset
 

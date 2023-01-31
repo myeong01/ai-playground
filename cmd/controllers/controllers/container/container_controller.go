@@ -62,6 +62,7 @@ type ContainerReconciler struct {
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=list;watch;create;update;delete
 //+kubebuilder:rbac:groups=core,resources=services,verbs=list;watch;create;update;delete
 //+kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=list;watch;create;update;delete
+//+kubebuilder:rbac:groups=container.ai-playground.io,resources=containers/approval,verbs=update
 //+kubebuilder:rbac:groups=container.ai-playground.io,resources=containers/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=container.ai-playground.io,resources=containers/finalizers,verbs=update
 

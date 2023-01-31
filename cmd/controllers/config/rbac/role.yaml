@@ -56,6 +56,12 @@ rules:
 - apiGroups:
   - authorization.ai-playground.io
   resources:
+  - groups/approval
+  verbs:
+  - update
+- apiGroups:
+  - authorization.ai-playground.io
+  resources:
   - groups/finalizers
   verbs:
   - update
@@ -105,6 +111,12 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - container.ai-playground.io
+  resources:
+  - containers/approval
+  verbs:
+  - update
 - apiGroups:
   - container.ai-playground.io
   resources:

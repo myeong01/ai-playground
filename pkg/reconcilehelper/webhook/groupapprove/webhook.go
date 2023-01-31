@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -36,7 +37,7 @@ func SetupGroupMutateWebhookWithManager(mgr manager.Manager) error {
 	webhook := &GroupMutateWebhook{
 		gvk:        gvk,
 		client:     mgr.GetClient(),
-		authClient: k.NewForConfigOrDie(mgr.GetConfig()).AuthorizationV1(),
+		authClient: k.NewForConfigOrDie(config.GetConfigOrDie()).AuthorizationV1(),
 	}
 	mgr.GetWebhookServer().Register(approve.GeneratePath(gvk), webhook)
 	return nil
@@ -59,6 +60,7 @@ func (wh *GroupMutateWebhook) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	resp := admissionv1.AdmissionResponse{}
+	resp.Allowed = true
 	resp.UID = admissionReview.Request.UID
 
 	patches := make([]approve.PatchOperation, 0)
@@ -102,6 +104,9 @@ func (wh *GroupMutateWebhook) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			}
 			if reqGroup.Spec.IsApproved != oldGroup.Spec.IsApproved {
 				resp.Allowed = false
+				resp.Result = &metav1.Status{
+					Reason: metav1.StatusReasonForbidden,
+				}
 			}
 			if !hasGroupUserApprovePermission && resp.Allowed {
 				for index, user := range reqGroup.Spec.Users {
@@ -161,7 +166,15 @@ func (wh *GroupMutateWebhook) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 }
 
 func (wh *GroupMutateWebhook) checkUserHasGroupOrGroupUserApprovePermission(ctx context.Context, userInfo authenticationv1.UserInfo, name, namespace string) (bool, bool, error) {
-	return false, false, nil
+	isGroupApproveAllowed, err := wh.checkUserHasGroupApprovePermission(ctx, userInfo, name, namespace)
+	if err != nil {
+		return false, false, err
+	}
+	if isGroupApproveAllowed {
+		return true, true, nil
+	}
+	isGroupUserApproveAllowed, err := wh.checkUserHasGroupUserApprovePermission(ctx, userInfo, name, namespace)
+	return false, isGroupUserApproveAllowed, err
 }
 
 func (wh *GroupMutateWebhook) checkUserHasGroupApprovePermission(ctx context.Context, userInfo authenticationv1.UserInfo, name, namespace string) (bool, error) {
@@ -173,16 +186,20 @@ func (wh *GroupMutateWebhook) checkUserHasGroupApprovePermission(ctx context.Con
 				Verb:        "update",
 				Group:       wh.gvk.Group,
 				Version:     wh.gvk.Version,
-				Resource:    wh.gvk.Kind,
+				Resource:    "groups",
 				Subresource: "approval",
 			},
+			User:   userInfo.Username,
+			Groups: userInfo.Groups,
+			UID:    userInfo.UID,
 		},
 	}
-	err := wh.client.Create(ctx, subjectAccessReview)
+	var err error
+	resp, err := wh.authClient.SubjectAccessReviews().Create(ctx, subjectAccessReview, metav1.CreateOptions{})
 	if err != nil {
 		return false, err
 	}
-	return subjectAccessReview.Status.Allowed, nil
+	return resp.Status.Allowed, nil
 }
 
 func (wh *GroupMutateWebhook) checkUserHasGroupUserApprovePermission(ctx context.Context, userInfo authenticationv1.UserInfo, name, namespace string) (bool, error) {
@@ -210,8 +227,10 @@ func (wh *GroupMutateWebhook) checkUserHasGroupUserApprovePermission(ctx context
 				return false, errors.New("unknown role type")
 			}
 			for _, rule := range rules {
-				// TODO is GroupVersion().String() works same as think
-				if len(rule.APIGroups) > 0 && rule.APIGroups[0] == wh.gvk.GroupVersion().String() && len(rule.Resources) > 0 && rule.Resources[0] == wh.gvk.Kind+"/approval" && len(rule.Verbs) > 0 && rule.Verbs[0] == "update" {
+				fmt.Println(rule.APIGroups[0], ":", wh.gvk.Group)
+				fmt.Println(rule.Resources[0])
+				fmt.Println(rule.Verbs[0])
+				if len(rule.APIGroups) > 0 && rule.APIGroups[0] == wh.gvk.Group && len(rule.Resources) > 0 && rule.Resources[0] == "groups/approval" && len(rule.Verbs) > 0 && rule.Verbs[0] == "update" {
 					return true, nil
 				}
 			}

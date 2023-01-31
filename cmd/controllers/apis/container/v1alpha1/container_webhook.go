@@ -28,7 +28,7 @@ import (
 var containerlog = logf.Log.WithName("container-resource")
 
 func (r *Container) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	err := approve.NewWebhookManagedBy(mgr, r).
+	err := approve.NewWebhookManagedBy(mgr, r, "containers").
 		Complete()
 	if err != nil {
 		return err

@@ -28,7 +28,7 @@ import (
 var playgroundlog = logf.Log.WithName("playground-resource")
 
 func (r *Playground) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	err := approve.NewWebhookManagedBy(mgr, r).Complete()
+	err := approve.NewWebhookManagedBy(mgr, r, "playgrounds").Complete()
 	if err != nil {
 		return err
 	}

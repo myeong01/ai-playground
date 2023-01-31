@@ -75,11 +75,12 @@ func (r *GroupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 func checkUserUpdate(users []authorizationv1alpha1.User, approvedUsers []authorizationv1alpha1.ApprovedUser) ([]authorizationv1alpha1.ApprovedUser, bool) {
 	updatedApprovedUsers := make([]authorizationv1alpha1.ApprovedUser, len(users))
+	isApprovedUserExist := len(approvedUsers) > 0
 	updatedApprovedUsersIndex := 0
 	approvedUsersIndex := 0
 	needUpdate := false
 	for _, user := range users {
-		if user.Name != approvedUsers[approvedUsersIndex].Name {
+		if isApprovedUserExist && user.Name != approvedUsers[approvedUsersIndex].Name {
 			if user.IsApproved {
 				updatedApprovedUsers[updatedApprovedUsersIndex] = userToApprovedUser(user)
 				updatedApprovedUsersIndex++

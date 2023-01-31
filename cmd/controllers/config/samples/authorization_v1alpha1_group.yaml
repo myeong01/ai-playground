@@ -9,4 +9,11 @@ metadata:
     app.kubernetes.io/created-by: controllers
   name: group-sample
 spec:
+  isApproved: true
+  users:
+    - name: yoonms0101@gmail.com
+      isApproved: false
+      role:
+        type: Role
+        name: role-sample
   # TODO(user): Add fields here

@@ -11,6 +11,26 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /playground-mutate-authorization-ai-playground-io-v1alpha1-group
+  failurePolicy: Fail
+  name: vgroup.kb.io
+  rules:
+  - apiGroups:
+    - authorization.ai-playground.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - groups
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
       path: /playground-mutate-container-ai-playground-io-v1alpha1-container
   failurePolicy: Fail
   name: mcontainer.kb.io

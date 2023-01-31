@@ -36,6 +36,7 @@ func (r *Group) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:path=/validate-authorization-ai-playground-io-v1alpha1-group,mutating=false,failurePolicy=fail,sideEffects=None,groups=authorization.ai-playground.io,resources=groups,verbs=create;update,versions=v1alpha1,name=vgroup.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/playground-mutate-authorization-ai-playground-io-v1alpha1-group,mutating=true,failurePolicy=fail,sideEffects=None,groups=authorization.ai-playground.io,resources=groups,verbs=create;update,versions=v1alpha1,name=vgroup.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Validator = &Group{}
 

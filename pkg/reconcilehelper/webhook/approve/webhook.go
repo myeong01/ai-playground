@@ -9,17 +9,15 @@ import (
 	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	k "k8s.io/client-go/kubernetes"
-	typedauthorizationv1 "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type Webhook[T ApprovalObject] struct {
-	gvk        schema.GroupVersionKind
-	authClient typedauthorizationv1.AuthorizationV1Interface
+	gvk    schema.GroupVersionKind
+	client client.Client
 }
 
 func NewWebhook[T ApprovalObject](object T, mgr manager.Manager) (*Webhook[T], error) {
@@ -28,8 +26,8 @@ func NewWebhook[T ApprovalObject](object T, mgr manager.Manager) (*Webhook[T], e
 		return nil, err
 	}
 	return &Webhook[T]{
-		gvk:        gvk,
-		authClient: k.NewForConfigOrDie(config.GetConfigOrDie()).AuthorizationV1(),
+		gvk:    gvk,
+		client: mgr.GetClient(),
 	}, nil
 }
 
@@ -126,18 +124,19 @@ func (wh *Webhook[T]) fillRespWithPermissionCheck(ctx context.Context, name, nam
 }
 
 func (wh *Webhook[T]) validation(ctx context.Context, name, namespace string, userInfo authenticationv1.UserInfo) (bool, string, error) {
-	resp, err := wh.authClient.SubjectAccessReviews().Create(ctx, &authorizationv1.SubjectAccessReview{
+	subjectAccessReview := &authorizationv1.SubjectAccessReview{
 		Spec: authorizationv1.SubjectAccessReviewSpec{
 			ResourceAttributes: wh.generateResourceAttributes(name, namespace),
 			User:               userInfo.Username,
 			Groups:             userInfo.Groups,
 			UID:                userInfo.UID,
 		},
-	}, metav1.CreateOptions{})
+	}
+	err := wh.client.Create(ctx, subjectAccessReview)
 	if err != nil {
 		return false, "", err
 	}
-	return resp.Status.Allowed, resp.Status.Reason, nil
+	return subjectAccessReview.Status.Allowed, subjectAccessReview.Status.Reason, nil
 }
 
 func (wh *Webhook[T]) generateResourceAttributes(name, namespace string) *authorizationv1.ResourceAttributes {

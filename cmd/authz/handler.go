@@ -128,6 +128,7 @@ func (s *server) callback(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Errorf("Failed to retrieve state from store: %v", err)
 		returnStatus(w, http.StatusInternalServerError, "Failed to retrieve state.")
+		return
 	}
 
 	// Exchange the authorization code with {access, refresh, id}_token

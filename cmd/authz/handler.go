@@ -72,6 +72,12 @@ func (s *server) authenticate(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			ctx := r.Context()
+			if d, err := json.MarshalIndent(checker, "", "  "); err != nil {
+				fmt.Println("err marshal:", err)
+			} else {
+				fmt.Println("checker")
+				fmt.Println(string(d))
+			}
 			allowed, err := s.authorizer.Validate(ctx, checker)
 			if err != nil {
 				returnStatus(w, http.StatusInternalServerError, err.Error())

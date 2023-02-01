@@ -85,7 +85,7 @@ func urlToCheckerInNamespace(url string, splitUrl []string, curIndex int, method
 	case "playground":
 		nextFn = urlToCheckerInResource
 	default:
-		return nil, ErrBadRequest.WithMsg(fmt.Sprintf("invalid url path: [%s], path next to version must be \"cluster\" or \"namespace\", but got [%s]", url, wide))
+		return nil, ErrBadRequest.WithMsg(fmt.Sprintf("invalid url path: [%s], path next to version must be \"group\" or \"playground\", but got [%s]", url, wide))
 	}
 	checker, err := nextFn(url, splitUrl, curIndex+2, method)
 	if err != nil {

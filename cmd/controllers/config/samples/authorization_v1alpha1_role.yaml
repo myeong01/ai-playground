@@ -12,7 +12,7 @@ spec:
   isApproved: true
   parentRole:
     type: ClusterRole
-    name: clusterrole-sample-child
+    name: clusterrole-sample
   rules:
     - apiGroups:
         - container.ai-playground.io
@@ -27,9 +27,14 @@ spec:
       verbs:
         - list
     - apiGroups:
+        - authorization.ai-playground.io
+      resources:
+        - groups/approval
+      verbs:
+        - update
+    - apiGroups:
         - container.ai-playground.io
       resources:
         - containers
       verbs:
         - delete
-  # TODO(user): Add fields here

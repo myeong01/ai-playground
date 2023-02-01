@@ -11,9 +11,27 @@ metadata:
 spec:
   isApproved: true
   rules:
-    - apiGroups:
-        - container.ai-playground.io
-      resources:
-        - containers
-      verbs:
-        - '*'
+  - apiGroups:
+      - container.ai-playground.io
+    resources:
+      - containers
+    verbs:
+      - get
+  - apiGroups:
+      - container.ai-playground.io
+    resources:
+      - containers
+    verbs:
+      - list
+  - apiGroups:
+      - authorization.ai-playground.io
+    resources:
+      - groups/approval
+    verbs:
+      - update
+  - apiGroups:
+      - container.ai-playground.io
+    resources:
+      - containers
+    verbs:
+      - delete

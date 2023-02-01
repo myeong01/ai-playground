@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"github.com/coreos/go-oidc"
 	"github.com/gorilla/sessions"
@@ -181,6 +182,12 @@ func (s *server) callback(w http.ResponseWriter, r *http.Request) {
 	session.Values["oauth2token"] = oauth2Token
 	if err := session.Save(r, w); err != nil {
 		logger.Errorf("Couldn't create user session: %v", err)
+	}
+
+	if d, err := json.MarshalIndent(w.Header(), "", "  "); err != nil {
+		fmt.Println("err:", err)
+	} else {
+		fmt.Println(string(d))
 	}
 
 	logger.Info("Login validated with ID token, redirecting.")

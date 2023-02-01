@@ -180,6 +180,13 @@ func (s *server) callback(w http.ResponseWriter, r *http.Request) {
 	session.Values["claims"] = claims
 	session.Values["idtoken"] = rawIDToken
 	session.Values["oauth2token"] = oauth2Token
+
+	if d, err := json.MarshalIndent(session, "", "  "); err != nil {
+		fmt.Println("err:", err)
+	} else {
+		fmt.Println(string(d))
+	}
+
 	if err := session.Save(r, w); err != nil {
 		logger.Errorf("Couldn't create user session: %v", err)
 	}

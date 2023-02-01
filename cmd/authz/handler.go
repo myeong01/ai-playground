@@ -80,6 +80,8 @@ func (s *server) authenticate(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(string(d))
 			}
 			allowed, err := s.authorizer.Validate(ctx, checker)
+			fmt.Println("allowed:", allowed)
+			fmt.Println("err:", err)
 			if err != nil {
 				returnStatus(w, http.StatusInternalServerError, err.Error())
 				return

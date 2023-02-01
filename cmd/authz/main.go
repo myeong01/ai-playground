@@ -143,7 +143,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error opening store: %v", err)
 	}
-	store := gormstore.New(db, []byte("secret"))
+	store := gormstore.New(db, []byte("thisismysecretlalalalalalalal"))
 	quit := make(chan struct{})
 	go store.PeriodicCleanup(1*time.Minute, quit)
 

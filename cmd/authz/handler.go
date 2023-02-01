@@ -179,10 +179,14 @@ func (s *server) callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["userid"] = claims[s.userIDOpts.claim].(string)
-	session.Values["claims"] = claims
+	//session.Values["claims"] = claims
 	session.Values["idtoken"] = rawIDToken
 	session.Values["oauth2token"] = oauth2Token
 
+	fmt.Println("userid:", claims[s.userIDOpts.claim].(string))
+	fmt.Println("claims:", claims)
+	fmt.Println("idtoken:", rawIDToken)
+	fmt.Println("oauth2token:", oauth2Token)
 	if d, err := json.MarshalIndent(session.Options, "", "  "); err != nil {
 		fmt.Println("err:", err)
 	} else {

@@ -182,7 +182,7 @@ func (s *server) callback(w http.ResponseWriter, r *http.Request) {
 	session.Values["idtoken"] = rawIDToken
 	session.Values["oauth2token"] = oauth2Token
 
-	if d, err := json.MarshalIndent(session, "", "  "); err != nil {
+	if d, err := json.MarshalIndent(session.Options, "", "  "); err != nil {
 		fmt.Println("err:", err)
 	} else {
 		fmt.Println(string(d))

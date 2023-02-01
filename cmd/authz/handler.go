@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/gob"
+	"fmt"
 	"github.com/coreos/go-oidc"
 	"github.com/gorilla/sessions"
 	"github.com/myeong01/ai-playground/cmd/authz/url"
@@ -32,6 +33,7 @@ func (s *server) authenticate(w http.ResponseWriter, r *http.Request) {
 	// TODO(yanniszark): change to standard 'Authorization: Bearer <value>' header
 	bearer := r.Header.Get("X-Auth-Token")
 	if bearer != "" {
+		fmt.Println("Header Exist")
 		r.AddCookie(&http.Cookie{
 			Name:   userSessionCookie,
 			Value:  bearer,

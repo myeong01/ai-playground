@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/coreos/go-oidc"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -178,6 +179,9 @@ func main() {
 		apiHostName:          apiHostName,
 		mainDomain:           mainDomain,
 	}
+
+	fmt.Println("apiHostName:", apiHostName)
+	fmt.Println("mainDomain:", mainDomain)
 
 	// Setup complete, mark server ready
 	isReady.Set()

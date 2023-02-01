@@ -61,6 +61,7 @@ func (s *server) authenticate(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set(s.userIDOpts.tokenHeader, session.Values["idtoken"].(string))
 		}
 		if s.apiHostName == r.Host {
+			fmt.Println("same!")
 			checker, err := url.UrlToChecker(r.URL.Path, r.Method)
 			if err != nil {
 				if url.IsBadRequestError(err) {

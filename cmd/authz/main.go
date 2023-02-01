@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/myeong01/ai-playground/pkg/authz/authorizer"
 	log "github.com/sirupsen/logrus"
 	"github.com/tevino/abool"
 	"github.com/wader/gormstore/v2"
@@ -40,8 +41,11 @@ type server struct {
 	provider             *oidc.Provider
 	oauth2Config         *oauth2.Config
 	store                sessions.Store
+	authorizer           *authorizer.Authorizer
 	staticDestination    string
 	sessionMaxAgeSeconds int
+	apiHostName          string
+	mainDomain           string
 	userIDOpts
 }
 
@@ -87,6 +91,8 @@ func main() {
 	storePath := getEnvOrDie("STORE_PATH")
 	// Sessions
 	sessionMaxAge := getEnvOrDefault("SESSION_MAX_AGE", defaultSessionMaxAge)
+	apiHostName := getEnvOrDefault("API_HOSTNAME", "")
+	mainDomain := getEnvOrDefault("MAIN_DOMAIN", "")
 
 	/////////////////////////////////////////////////////
 	// Start server immediately for whitelisted routes //
@@ -161,6 +167,7 @@ func main() {
 		// TODO: Add support for Redis
 		store:             store,
 		staticDestination: staticDestination,
+		authorizer:        authorizer.New(),
 		userIDOpts: userIDOpts{
 			header:      userIDHeader,
 			tokenHeader: userIDTokenHeader,
@@ -168,6 +175,8 @@ func main() {
 			claim:       userIDClaim,
 		},
 		sessionMaxAgeSeconds: sessionMaxAgeSeconds,
+		apiHostName:          apiHostName,
+		mainDomain:           mainDomain,
 	}
 
 	// Setup complete, mark server ready

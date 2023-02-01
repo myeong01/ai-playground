@@ -4,10 +4,9 @@ package main
 
 import (
 	"encoding/gob"
-	"encoding/json"
-	"fmt"
 	"github.com/coreos/go-oidc"
 	"github.com/gorilla/sessions"
+	"github.com/myeong01/ai-playground/cmd/authz/url"
 	"github.com/tevino/abool"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -58,11 +57,27 @@ func (s *server) authenticate(w http.ResponseWriter, r *http.Request) {
 		if s.userIDOpts.tokenHeader != "" {
 			w.Header().Set(s.userIDOpts.tokenHeader, session.Values["idtoken"].(string))
 		}
-		d, err := json.MarshalIndent(w.Header(), "", "  ")
-		if err != nil {
-			fmt.Println("err", err)
-		} else {
-			fmt.Println(string(d))
+		if s.apiHostName == r.Host {
+			checker, err := url.UrlToChecker(r.URL.Path, r.Method)
+			if err != nil {
+				if url.IsBadRequestError(err) {
+					returnStatus(w, http.StatusBadRequest, err.Error())
+				} else {
+					returnStatus(w, http.StatusInternalServerError, err.Error())
+				}
+				return
+			}
+			ctx := r.Context()
+			allowed, err := s.authorizer.Validate(ctx, checker)
+			if err != nil {
+				returnStatus(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+			if !allowed {
+				// TODO redirect to forbidden page
+				returnStatus(w, http.StatusForbidden, "not allowed")
+				return
+			}
 		}
 		returnStatus(w, http.StatusOK, "OK")
 		return
@@ -154,7 +169,9 @@ func (s *server) callback(w http.ResponseWriter, r *http.Request) {
 	session := sessions.NewSession(s.store, userSessionCookie)
 	session.Options.MaxAge = s.sessionMaxAgeSeconds
 	session.Options.Path = "/"
-	session.Options.Domain = "myeongsuk.ml"
+	if s.mainDomain != "" {
+		session.Options.Domain = s.mainDomain
+	}
 
 	session.Values["userid"] = claims[s.userIDOpts.claim].(string)
 	session.Values["claims"] = claims

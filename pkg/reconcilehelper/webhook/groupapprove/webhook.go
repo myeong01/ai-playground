@@ -14,19 +14,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	k "k8s.io/client-go/kubernetes"
-	typedauthorizationv1 "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type GroupMutateWebhook struct {
-	gvk        schema.GroupVersionKind
-	client     client.Client
-	authClient typedauthorizationv1.AuthorizationV1Interface
+	gvk    schema.GroupVersionKind
+	client client.Client
 }
 
 func SetupGroupMutateWebhookWithManager(mgr manager.Manager) error {
@@ -35,9 +31,8 @@ func SetupGroupMutateWebhookWithManager(mgr manager.Manager) error {
 		return err
 	}
 	webhook := &GroupMutateWebhook{
-		gvk:        gvk,
-		client:     mgr.GetClient(),
-		authClient: k.NewForConfigOrDie(config.GetConfigOrDie()).AuthorizationV1(),
+		gvk:    gvk,
+		client: mgr.GetClient(),
 	}
 	mgr.GetWebhookServer().Register(approve.GeneratePath(gvk), webhook)
 	return nil
@@ -194,12 +189,11 @@ func (wh *GroupMutateWebhook) checkUserHasGroupApprovePermission(ctx context.Con
 			UID:    userInfo.UID,
 		},
 	}
-	var err error
-	resp, err := wh.authClient.SubjectAccessReviews().Create(ctx, subjectAccessReview, metav1.CreateOptions{})
+	err := wh.client.Create(ctx, subjectAccessReview)
 	if err != nil {
 		return false, err
 	}
-	return resp.Status.Allowed, nil
+	return subjectAccessReview.Status.Allowed, nil
 }
 
 func (wh *GroupMutateWebhook) checkUserHasGroupUserApprovePermission(ctx context.Context, userInfo authenticationv1.UserInfo, name, namespace string) (bool, error) {
@@ -227,9 +221,6 @@ func (wh *GroupMutateWebhook) checkUserHasGroupUserApprovePermission(ctx context
 				return false, errors.New("unknown role type")
 			}
 			for _, rule := range rules {
-				fmt.Println(rule.APIGroups[0], ":", wh.gvk.Group)
-				fmt.Println(rule.Resources[0])
-				fmt.Println(rule.Verbs[0])
 				if len(rule.APIGroups) > 0 && rule.APIGroups[0] == wh.gvk.Group && len(rule.Resources) > 0 && rule.Resources[0] == "groups/approval" && len(rule.Verbs) > 0 && rule.Verbs[0] == "update" {
 					return true, nil
 				}

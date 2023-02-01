@@ -75,3 +75,8 @@ func (c *Checker) WithUser(userInfo *authenticationv1.UserInfo) *Checker {
 	c.UserInfo = userInfo
 	return c
 }
+
+func (c *Checker) WithUsername(username string) *Checker {
+	c.UserInfo.Username = username
+	return c
+}

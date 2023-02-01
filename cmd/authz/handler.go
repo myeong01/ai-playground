@@ -71,6 +71,7 @@ func (s *server) authenticate(w http.ResponseWriter, r *http.Request) {
 				}
 				return
 			}
+			checker.WithUsername(userID)
 			ctx := r.Context()
 			if d, err := json.MarshalIndent(checker, "", "  "); err != nil {
 				fmt.Println("err marshal:", err)

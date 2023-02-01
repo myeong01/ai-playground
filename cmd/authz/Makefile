@@ -22,7 +22,7 @@ build:
 docker-build-amd64: build
 	docker buildx build --platform linux/amd64 -t $(IMG):$(TAG) .
 
-docker-build:
+docker-build: build
 	docker build -t $(IMG):$(TAG) .
 
 docker-push:

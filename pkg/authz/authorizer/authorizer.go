@@ -58,7 +58,7 @@ func (a *Authorizer) validateWithKubeWide(ctx context.Context, checker *Checker)
 }
 
 func (a *Authorizer) validateWithPlaygroundWide(ctx context.Context, checker *Checker) (bool, error) {
-	group, err := a.aiPlaygroundAuthClient.Groups(checker.ResourceAttributes.Namespace).Get(ctx, checker.ResourceAttributes.Name, metav1.GetOptions{})
+	group, err := a.aiPlaygroundAuthClient.Groups(checker.ResourceAttributes.Namespace).Get(ctx, checker.GroupName, metav1.GetOptions{})
 	if err != nil {
 		return false, err
 	}

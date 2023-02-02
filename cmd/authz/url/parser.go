@@ -169,5 +169,3 @@ func addVerbByMethod(checker *authorizer.Checker, url, method string, isEndWithO
 // /api/resource/<group>/<version>/cluster/<resource>/subresource/<subresource> 											<= 6
 // /api/resource/<group>/<version>/cluster/<resource>/object/<objectName> 													<= 6
 // /api/resource/<group>/<version>/cluster/<resource> 																		<= 4
-
-// <namespace>-<group name>-<role>

@@ -74,7 +74,7 @@ func (a *Authorizer) validateWithPlaygroundWide(ctx context.Context, checker *Ch
 				}
 				rules = clusterRole.Status.Rules
 			case "Role":
-				role, err := a.aiPlaygroundAuthClient.Roles(checker.ResourceAttributes.Namespace).Get(ctx, checker.ResourceAttributes.Name, metav1.GetOptions{})
+				role, err := a.aiPlaygroundAuthClient.Roles(checker.ResourceAttributes.Namespace).Get(ctx, user.Role.Name, metav1.GetOptions{})
 				if err != nil {
 					return false, err
 				}

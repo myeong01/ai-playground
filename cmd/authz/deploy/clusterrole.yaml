@@ -1,0 +1,29 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: authservice
+rules:
+  - apiGroups:
+      - authorization.ai-playground.io
+    resources:
+      - groups
+    verbs:
+      - get
+  - apiGroups:
+      - authorization.ai-playground.io
+    resources:
+      - clusterroles
+    verbs:
+      - get
+  - apiGroups:
+      - authorization.ai-playground.io
+    resources:
+      - roles
+    verbs:
+      - get
+  - apiGroups:
+      - authorization.k8s.io
+    resources:
+      - subjectaccessreviews
+    verbs:
+      - create

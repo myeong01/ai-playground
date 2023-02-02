@@ -66,6 +66,7 @@ func init() {
 	utilruntime.Must(resourcev1alpha1.AddToScheme(scheme))
 	utilruntime.Must(playgroundv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(authorizationv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(istioapisv1beta1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -111,7 +112,6 @@ func main() {
 	}
 
 	// register scheme
-	istioapisv1beta1.AddToScheme(mgr.GetScheme())
 
 	if err = (&containercontrollers.ContainerReconciler{
 		Client:        mgr.GetClient(),

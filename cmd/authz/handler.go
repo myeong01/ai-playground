@@ -61,7 +61,6 @@ func (s *server) authenticate(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set(s.userIDOpts.tokenHeader, session.Values["idtoken"].(string))
 		}
 		if s.apiHostName == r.Host {
-			fmt.Println("same!")
 			checker, err := url.UrlToChecker(r.URL.Path, r.Method)
 			if err != nil {
 				if url.IsBadRequestError(err) {
@@ -73,15 +72,7 @@ func (s *server) authenticate(w http.ResponseWriter, r *http.Request) {
 			}
 			checker.WithUsername(userID)
 			ctx := r.Context()
-			if d, err := json.MarshalIndent(checker, "", "  "); err != nil {
-				fmt.Println("err marshal:", err)
-			} else {
-				fmt.Println("checker")
-				fmt.Println(string(d))
-			}
 			allowed, err := s.authorizer.Validate(ctx, checker)
-			fmt.Println("allowed:", allowed)
-			fmt.Println("err:", err)
 			if err != nil {
 				returnStatus(w, http.StatusInternalServerError, err.Error())
 				return
@@ -191,16 +182,6 @@ func (s *server) callback(w http.ResponseWriter, r *http.Request) {
 	//session.Values["claims"] = claims
 	session.Values["idtoken"] = rawIDToken
 	session.Values["oauth2token"] = oauth2Token
-
-	fmt.Println("userid:", claims[s.userIDOpts.claim].(string))
-	fmt.Println("claims:", claims)
-	fmt.Println("idtoken:", rawIDToken)
-	fmt.Println("oauth2token:", oauth2Token)
-	if d, err := json.MarshalIndent(session.Options, "", "  "); err != nil {
-		fmt.Println("err:", err)
-	} else {
-		fmt.Println(string(d))
-	}
 
 	if err := session.Save(r, w); err != nil {
 		logger.Errorf("Couldn't create user session: %v", err)

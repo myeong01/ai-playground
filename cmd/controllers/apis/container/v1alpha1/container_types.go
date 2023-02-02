@@ -40,6 +40,7 @@ type ContainerStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	AllocatedResource AllocatedResource `json:"allocatedResource,omitempty"`
+	Status            string            `json:"status,omitempty"`
 }
 
 type AllocatedResource struct {

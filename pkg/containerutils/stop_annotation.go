@@ -30,6 +30,12 @@ func SetStopAnnotation(meta *metav1.ObjectMeta) {
 	}
 }
 
+func RemoveStopAnnotation(meta *metav1.ObjectMeta) {
+	if meta != nil && meta.GetAnnotations() != nil {
+		delete(meta.GetAnnotations(), StopAnnotation)
+	}
+}
+
 func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
 	if meta.GetAnnotations() == nil {
 		return false

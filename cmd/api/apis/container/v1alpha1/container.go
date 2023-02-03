@@ -163,7 +163,11 @@ func (h *ContainerHandler) UpdateContainerInGroup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	} else {
-		containerutils.SetStopAnnotation(&currentContainer.ObjectMeta)
+		if req.Start {
+			containerutils.RemoveStopAnnotation(&currentContainer.ObjectMeta)
+		} else {
+			containerutils.SetStopAnnotation(&currentContainer.ObjectMeta)
+		}
 		if updatedContainer, err := containerClient.Update(c, currentContainer, metav1.UpdateOptions{}); err != nil {
 			h.logger.Errorf("unable to approve container: %v", err)
 			resp.Error = "unable to approve container"

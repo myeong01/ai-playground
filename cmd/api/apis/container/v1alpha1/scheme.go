@@ -42,7 +42,7 @@ type UpdateContainerRequest struct {
 
 type UpdateContainerResponse struct {
 	Start bool   `json:"start"`
-	Error string `json:"error"`
+	Error string `json:"error,omitempty"`
 }
 
 type Container struct {

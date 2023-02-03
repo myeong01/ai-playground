@@ -8,6 +8,7 @@ import (
 	typedcontainerv1alpha1 "github.com/myeong01/ai-playground/pkg/clientset/clientset/typed/container/v1alpha1"
 	"github.com/myeong01/ai-playground/pkg/containerutils"
 	"github.com/myeong01/ai-playground/pkg/logger"
+	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 )
@@ -20,6 +21,9 @@ type ContainerHandler struct {
 func NewContainerHandler(client clientset.Interface) *ContainerHandler {
 	return &ContainerHandler{
 		client: client.ContainerV1alpha1(),
+		logger: logger.Logger{
+			Logger: logrus.New(),
+		},
 	}
 }
 
@@ -108,8 +112,8 @@ func (h *ContainerHandler) DeleteContainerInGroup(c *gin.Context) {
 	resp := DeleteContainerResponse{}
 
 	if err := h.client.Containers(namespace).Delete(c, groupName+"-"+objectName, metav1.DeleteOptions{}); err != nil {
-		h.logger.Errorf("unable to get container: %v", err)
-		resp.Error = "unable to find container"
+		h.logger.Errorf("unable to delete container: %v", err)
+		resp.Error = "unable to delete container"
 		c.JSON(http.StatusInternalServerError, resp)
 		return
 	} else {

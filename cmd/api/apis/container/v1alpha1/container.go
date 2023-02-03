@@ -107,7 +107,7 @@ func (h *ContainerHandler) DeleteContainerInGroup(c *gin.Context) {
 
 	resp := DeleteContainerResponse{}
 
-	if err := h.client.Containers(namespace).Delete(c, groupName+"-"+objectName, metav1.GetOptions{}); err != nil {
+	if err := h.client.Containers(namespace).Delete(c, groupName+"-"+objectName, metav1.DeleteOptions{}); err != nil {
 		h.logger.Errorf("unable to get container: %v", err)
 		resp.Error = "unable to find container"
 		c.JSON(http.StatusInternalServerError, resp)

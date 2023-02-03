@@ -39,8 +39,6 @@ spec:
                 type: string
               isApproved:
                 type: boolean
-              ports:
-                type: integer
               resourceName:
                 type: string
             required:

@@ -21,12 +21,14 @@ import (
 	containerv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/container/v1alpha1"
 	imagev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/image/v1alpha1"
 	resourcev1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/resource/v1alpha1"
+	"github.com/myeong01/ai-playground/pkg/containerutils"
 	"github.com/myeong01/ai-playground/pkg/reconcilehelper"
 	istioapiv1beta1 "istio.io/api/networking/v1beta1"
 	istioapisv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	kresource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -35,12 +37,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"time"
+	"strconv"
 )
 
 const (
-	StopAnnotation          = "ai-playground-resource-stopped"
-	LastActivityAnnotation  = "container.ai-playground.ai/last_activity"
 	PrefixEnvVar            = "URL_PREFIX"
 	GatewayName             = "default/main-gateway"
 	HostName                = "myeongsuk.ml"
@@ -193,7 +193,7 @@ func (r *ContainerReconciler) ApproveContainerReconcile(ctx context.Context, con
 	}
 
 	// reconcile service
-	svc := generateService(container)
+	svc := generateService(container, image)
 	if err := ctrl.SetControllerReference(container, svc, r.Scheme); err != nil {
 		logger.Error(err, "unable to set controller reference to Service")
 		return ctrl.Result{}, err
@@ -553,42 +553,13 @@ func (r *ContainerReconciler) UnApproveContainerReconcile(ctx context.Context, c
 	return ctrl.Result{}, nil
 }
 
-func SetStopAnnotation(meta *metav1.ObjectMeta) {
-	if meta == nil {
-		return
-	}
-	t := time.Now()
-	if meta.GetAnnotations() != nil {
-		meta.Annotations[StopAnnotation] = t.Format(t.Format(time.RFC3339))
-	} else {
-		meta.SetAnnotations(map[string]string{
-			StopAnnotation: t.Format(time.RFC3339),
-		})
-	}
-
-	if meta.GetAnnotations() != nil {
-		if _, ok := meta.GetAnnotations()[LastActivityAnnotation]; ok {
-			delete(meta.GetAnnotations(), LastActivityAnnotation)
-		}
-	}
-}
-
-func StopAnnotationIsSet(meta metav1.ObjectMeta) bool {
-	if meta.GetAnnotations() == nil {
-		return false
-	}
-
-	_, ok := meta.GetAnnotations()[StopAnnotation]
-	return ok
-}
-
 func generateChildResourceName(parentName string) string {
 	return ChildResourceNamePrefix + parentName
 }
 
 func generateDeployment(container *containerv1alpha1.Container, resource *resourcev1alpha1.Resource, image *imagev1alpha1.Image) *appsv1.Deployment {
 	replicas := int32(1)
-	if StopAnnotationIsSet(container.ObjectMeta) {
+	if containerutils.StopAnnotationIsSet(container.ObjectMeta) {
 		replicas = 0
 	}
 
@@ -628,12 +599,23 @@ func generateDeployment(container *containerv1alpha1.Container, resource *resour
 							ImagePullPolicy:          corev1.PullIfNotPresent,
 							TerminationMessagePolicy: corev1.TerminationMessageReadFile,
 							TerminationMessagePath:   corev1.TerminationMessagePathDefault,
-							Resources:                corev1.ResourceRequirements{},
+							Resources: corev1.ResourceRequirements{
+								Limits: map[corev1.ResourceName]kresource.Quantity{
+									corev1.ResourceCPU:    kresource.MustParse(strconv.Itoa(int(resource.Spec.Cpu))),
+									corev1.ResourceMemory: kresource.MustParse(strconv.Itoa(int(resource.Spec.Memory)) + "Gi"),
+									"nvidia.com/gpu":      kresource.MustParse(strconv.Itoa(int(resource.Spec.Gpu))),
+								},
+								Requests: map[corev1.ResourceName]kresource.Quantity{
+									corev1.ResourceCPU:    kresource.MustParse(strconv.Itoa(int(resource.Spec.Cpu))),
+									corev1.ResourceMemory: kresource.MustParse(strconv.Itoa(int(resource.Spec.Memory)) + "Gi"),
+									"nvidia.com/gpu":      kresource.MustParse(strconv.Itoa(int(resource.Spec.Gpu))),
+								},
+							},
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "http",
 									Protocol:      corev1.ProtocolTCP,
-									ContainerPort: int32(container.Spec.Port),
+									ContainerPort: int32(image.Spec.Port),
 								},
 							},
 							Env: []corev1.EnvVar{
@@ -648,7 +630,7 @@ func generateDeployment(container *containerv1alpha1.Container, resource *resour
 	return deployment
 }
 
-func generateService(container *containerv1alpha1.Container) *corev1.Service {
+func generateService(container *containerv1alpha1.Container, image *imagev1alpha1.Image) *corev1.Service {
 	name := generateChildResourceName(container.Name)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -667,7 +649,7 @@ func generateService(container *containerv1alpha1.Container) *corev1.Service {
 					Name:       "http-" + name,
 					Protocol:   corev1.ProtocolTCP,
 					Port:       DefaultPort,
-					TargetPort: intstr.FromInt(int(container.Spec.Port)),
+					TargetPort: intstr.FromInt(int(image.Spec.Port)),
 				},
 			},
 		},

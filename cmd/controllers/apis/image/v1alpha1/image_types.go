@@ -29,6 +29,7 @@ type ImageSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	ImageNameWithTag string   `json:"imageNameWithTag"`
+	Port             uint     `json:"ports"`
 	ImagePullSecrets []string `json:"imagePullSecretName,omitempty"`
 }
 

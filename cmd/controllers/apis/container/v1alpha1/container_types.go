@@ -30,7 +30,6 @@ type ContainerSpec struct {
 
 	ImageName    string `json:"imageName"`
 	ResourceName string `json:"resourceName"`
-	Port         uint   `json:"ports,omitempty"`
 	IsApproved   bool   `json:"isApproved,omitempty"`
 }
 

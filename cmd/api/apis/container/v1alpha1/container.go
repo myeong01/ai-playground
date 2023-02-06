@@ -94,7 +94,7 @@ func (h *ContainerHandler) CreateContainerInGroup(c *gin.Context) {
 			IsApproved:   false,
 		},
 	}, metav1.CreateOptions{}); err != nil {
-		h.logger.Errorf("unable to create container : %v\n", err)
+		h.logger.Errorf("unable to create container: %v\n", err)
 		resp.Error = "failed to create container"
 		c.JSON(http.StatusInternalServerError, resp)
 		return
@@ -112,7 +112,7 @@ func (h *ContainerHandler) DeleteContainerInGroup(c *gin.Context) {
 	resp := DeleteContainerResponse{}
 
 	if err := h.client.Containers(namespace).Delete(c, groupName+"-"+objectName, metav1.DeleteOptions{}); err != nil {
-		h.logger.Errorf("unable to delete container: %v", err)
+		h.logger.Errorf("unable to delete container: %v\n", err)
 		resp.Error = "unable to delete container"
 		c.JSON(http.StatusInternalServerError, resp)
 		return
@@ -158,7 +158,7 @@ func (h *ContainerHandler) UpdateContainerInGroup(c *gin.Context) {
 	containerClient := h.client.Containers(namespace)
 
 	if currentContainer, err := containerClient.Get(c, groupName+"-"+objectName, metav1.GetOptions{}); err != nil {
-		h.logger.Errorf("unable to get container: %v", err)
+		h.logger.Errorf("unable to get container: %v\n", err)
 		resp.Error = "unable to find container"
 		c.JSON(http.StatusInternalServerError, resp)
 		return
@@ -169,8 +169,8 @@ func (h *ContainerHandler) UpdateContainerInGroup(c *gin.Context) {
 			containerutils.SetStopAnnotation(&currentContainer.ObjectMeta)
 		}
 		if updatedContainer, err := containerClient.Update(c, currentContainer, metav1.UpdateOptions{}); err != nil {
-			h.logger.Errorf("unable to approve container: %v", err)
-			resp.Error = "unable to approve container"
+			h.logger.Errorf("unable to update container: %v\n", err)
+			resp.Error = "unable to update container"
 			c.JSON(http.StatusInternalServerError, resp)
 			return
 		} else {

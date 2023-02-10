@@ -32,6 +32,12 @@ type PlaygroundSpec struct {
 
 	IsApproved    bool                                      `json:"isApproved,omitempty"`
 	ResourceQuota map[corev1.ResourceName]resource.Quantity `json:"resourceQuota"`
+	Kubeflow      *Kubeflow                                 `json:"kubeflow,omitempty"`
+}
+
+type Kubeflow struct {
+	IsApproved    bool   `json:"isApproved"`
+	OwnerUserName string `json:"ownerUserName"`
 }
 
 // PlaygroundStatus defines the observed state of Playground

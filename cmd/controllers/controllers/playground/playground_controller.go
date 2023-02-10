@@ -18,8 +18,10 @@ package playground
 
 import (
 	"context"
+	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
 	"github.com/myeong01/ai-playground/pkg/reconcilehelper"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,7 +41,8 @@ const (
 // PlaygroundReconciler reconciles a Playground object
 type PlaygroundReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme        *runtime.Scheme
+	ProfileClient ProfileInterface
 }
 
 //+kubebuilder:rbac:groups=playground.ai-playground.io,resources=playgrounds,verbs=get;list;watch;create;update;patch;delete
@@ -170,6 +173,25 @@ func (r *PlaygroundReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 				return ctrl.Result{}, err
 			}
 		}
+		if playground.Spec.Kubeflow != nil && playground.Spec.Kubeflow.IsApproved {
+			profile := generateProfile(playground)
+			// TODO add profile schema to reconciler schema and add ownerreference to profile with playground
+			if _, err := r.ProfileClient.Get(ctx, profile.Name, metav1.GetOptions{}); err != nil {
+				if apierrs.IsNotFound(err) {
+					if _, err := r.ProfileClient.Create(ctx, profile); err != nil {
+						logger.Error(err, "failed to create Profile")
+						return ctrl.Result{}, err
+					} else {
+						// TODO update status
+					}
+				} else {
+					logger.Error(err, "failed to get Profile")
+					return ctrl.Result{}, err
+				}
+			} else {
+				// TODO check is currentProfile valid
+			}
+		}
 	} else {
 		// TODO implement removing namespace and resource quota when playground not approved
 	}
@@ -200,6 +222,21 @@ func generateResourceQuota(playground *playgroundv1alpha1.Playground) *corev1.Re
 		},
 		Spec: corev1.ResourceQuotaSpec{
 			Hard: playground.Spec.ResourceQuota,
+		},
+	}
+}
+
+func generateProfile(playground *playgroundv1alpha1.Playground) *profilev1beta1.Profile {
+	name := generateChildResourceName(playground.Name)
+	return &profilev1beta1.Profile{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Spec: profilev1beta1.ProfileSpec{
+			Owner: rbacv1.Subject{
+				Kind: rbacv1.UserKind,
+				Name: playground.Spec.Kubeflow.OwnerUserName,
+			},
 		},
 	}
 }

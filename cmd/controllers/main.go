@@ -191,9 +191,17 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Resource")
 		os.Exit(1)
 	}
+
+	profileClient, err := playgroundcontrollers.NewProfileClient(mgr.GetConfig())
+	if err != nil {
+		setupLog.Error(err, "unable to get profile client")
+		os.Exit(1)
+	}
+
 	if err = (&playgroundcontrollers.PlaygroundReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		ProfileClient: profileClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Playground")
 		os.Exit(1)

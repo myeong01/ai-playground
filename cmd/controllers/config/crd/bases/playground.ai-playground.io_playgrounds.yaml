@@ -37,6 +37,16 @@ spec:
             properties:
               isApproved:
                 type: boolean
+              kubeflow:
+                properties:
+                  isApproved:
+                    type: boolean
+                  ownerUserName:
+                    type: string
+                required:
+                - isApproved
+                - ownerUserName
+                type: object
               resourceQuota:
                 additionalProperties:
                   anyOf:

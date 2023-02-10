@@ -19,21 +19,14 @@ package main
 import (
 	"flag"
 	"github.com/myeong01/ai-playground/pkg/reconcilehelper/webhook/groupapprove"
-	"os"
-
 	istioapisv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
+	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
+	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	authorizationv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/authorization/v1alpha1"
 	containerv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/container/v1alpha1"
 	datasetv1alpha1 "github.com/myeong01/ai-playground/cmd/controllers/apis/dataset/v1alpha1"
@@ -48,6 +41,12 @@ import (
 	nnicontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/nni"
 	playgroundcontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/playground"
 	resourcecontrollers "github.com/myeong01/ai-playground/cmd/controllers/controllers/resource"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -67,6 +66,7 @@ func init() {
 	utilruntime.Must(playgroundv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(authorizationv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(istioapisv1beta1.AddToScheme(scheme))
+	utilruntime.Must(profilev1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -191,17 +191,9 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Resource")
 		os.Exit(1)
 	}
-
-	profileClient, err := playgroundcontrollers.NewProfileClient(mgr.GetConfig())
-	if err != nil {
-		setupLog.Error(err, "unable to get profile client")
-		os.Exit(1)
-	}
-
 	if err = (&playgroundcontrollers.PlaygroundReconciler{
-		Client:        mgr.GetClient(),
-		Scheme:        mgr.GetScheme(),
-		ProfileClient: profileClient,
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Playground")
 		os.Exit(1)

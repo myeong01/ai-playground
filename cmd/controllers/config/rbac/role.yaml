@@ -266,6 +266,16 @@ rules:
   - patch
   - update
 - apiGroups:
+  - kubeflow.org
+  resources:
+  - profiles
+  verbs:
+  - create
+  - delete
+  - list
+  - update
+  - watch
+- apiGroups:
   - networking.istio.io
   resources:
   - virtualservices

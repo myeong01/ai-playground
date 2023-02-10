@@ -18,7 +18,7 @@ package playground
 
 import (
 	"context"
-	profilev1beta1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1beta1"
+	profilev1 "github.com/kubeflow/kubeflow/components/profile-controller/api/v1"
 	"github.com/myeong01/ai-playground/pkg/reconcilehelper"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -41,14 +41,14 @@ const (
 // PlaygroundReconciler reconciles a Playground object
 type PlaygroundReconciler struct {
 	client.Client
-	Scheme        *runtime.Scheme
-	ProfileClient ProfileInterface
+	Scheme *runtime.Scheme
 }
 
 //+kubebuilder:rbac:groups=playground.ai-playground.io,resources=playgrounds,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=playground.ai-playground.io,resources=playgrounds/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=core,resources=namespaces,verbs=list;watch;create;update;delete
 //+kubebuilder:rbac:groups=core,resources=resourcequotas,verbs=list;watch;create;update;delete
+//+kubebuilder:rbac:groups=kubeflow.org,resources=profiles,verbs=list;watch;create;update;delete
 //+kubebuilder:rbac:groups=playground.ai-playground.io,resources=playgrounds/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -175,10 +175,11 @@ func (r *PlaygroundReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 		if playground.Spec.Kubeflow != nil && playground.Spec.Kubeflow.IsApproved {
 			profile := generateProfile(playground)
+			currentProfile := &profilev1.Profile{}
 			// TODO add profile schema to reconciler schema and add ownerreference to profile with playground
-			if _, err := r.ProfileClient.Get(ctx, profile.Name, metav1.GetOptions{}); err != nil {
+			if err := r.Get(ctx, types.NamespacedName{Name: profile.Name}, currentProfile); err != nil {
 				if apierrs.IsNotFound(err) {
-					if _, err := r.ProfileClient.Create(ctx, profile); err != nil {
+					if err := r.Create(ctx, profile); err != nil {
 						logger.Error(err, "failed to create Profile")
 						return ctrl.Result{}, err
 					} else {
@@ -226,13 +227,13 @@ func generateResourceQuota(playground *playgroundv1alpha1.Playground) *corev1.Re
 	}
 }
 
-func generateProfile(playground *playgroundv1alpha1.Playground) *profilev1beta1.Profile {
+func generateProfile(playground *playgroundv1alpha1.Playground) *profilev1.Profile {
 	name := generateChildResourceName(playground.Name)
-	return &profilev1beta1.Profile{
+	return &profilev1.Profile{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 		},
-		Spec: profilev1beta1.ProfileSpec{
+		Spec: profilev1.ProfileSpec{
 			Owner: rbacv1.Subject{
 				Kind: rbacv1.UserKind,
 				Name: playground.Spec.Kubeflow.OwnerUserName,
